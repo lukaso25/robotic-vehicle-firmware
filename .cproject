@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?fileVersion 4.0.0?>
+
+<cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
+	<storageModule moduleId="org.eclipse.cdt.core.settings">
+		<cconfiguration id="org.eclipse.cdt.core.default.config.1758903934">
+			<storageModule buildSystemId="org.eclipse.cdt.core.defaultConfigDataProvider" id="org.eclipse.cdt.core.default.config.1758903934" moduleId="org.eclipse.cdt.core.settings" name="Configuration">
+				<externalSettings/>
+				<extensions>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
+				</extensions>
+			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.core.externalSettings">
+				<externalSettings containerId="org.coocox.ExternalSettings" factoryId="org.eclipse.cdt.core.extension.container.factory">
+					<externalSetting>
+						<entry flags="" kind="includePath" name="C:\Programs\GNU Tools ARM\arm-none-eabi\include"/>
+						<entry flags="" kind="includePath" name="C:\Programs\GNU Tools ARM\lib\gcc\arm-none-eabi\4.6.2\include"/>
+						<entry flags="" kind="includePath" name="C:\Programs\GNU Tools ARM\lib\gcc\arm-none-eabi\4.6.2\include-fixed"/>
+						<entry flags="" kind="includePath" name="."/>
+						<entry flags="" kind="includePath" name="cmsis"/>
+						<entry flags="" kind="includePath" name="FreeRTOS/include"/>
+						<entry flags="" kind="includePath" name="lm3slib"/>
+						<entry flags="" kind="includePath" name="lm3slib/driverlib"/>
+						<entry flags="" kind="includePath" name="lm3slib/inc"/>
+						<entry flags="" kind="includePath" name="TraceRecorder/Include"/>
+						<entry flags="" kind="macro" name="__GNUC__" value=""/>
+						<entry flags="" kind="macro" name="gcc" value=""/>
+						<entry flags="" kind="macro" name="LM3S8962" value=""/>
+					</externalSetting>
+				</externalSettings>
+			</storageModule>
+		</cconfiguration>
+	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.core.pathentry">
+		<pathentry kind="src" path=""/>
+		<pathentry include="C:/Programs/GNU Tools ARM/arm-none-eabi/include" kind="inc" path="" system="true"/>
+		<pathentry include="C:/Programs/GNU Tools ARM/lib/gcc/arm-none-eabi/4.6.2/include" kind="inc" path="" system="true"/>
+		<pathentry include="C:/Programs/GNU Tools ARM/lib/gcc/arm-none-eabi/4.6.2/include-fixed" kind="inc" path="" system="true"/>
+		<pathentry include="C:/SP2/DiplomkaProj" kind="inc" path="" system="true"/>
+		<pathentry include="C:/SP2/DiplomkaProj/cmsis" kind="inc" path="" system="true"/>
+		<pathentry include="C:/SP2/DiplomkaProj/FreeRTOS/include" kind="inc" path="" system="true"/>
+		<pathentry include="C:/SP2/DiplomkaProj/lm3slib" kind="inc" path="" system="true"/>
+		<pathentry include="C:/SP2/DiplomkaProj/lm3slib/driverlib" kind="inc" path="" system="true"/>
+		<pathentry include="C:/SP2/DiplomkaProj/lm3slib/inc" kind="inc" path="" system="true"/>
+		<pathentry include="C:/SP2/DiplomkaProj/TraceRecorder/Include" kind="inc" path="" system="true"/>
+		<pathentry kind="mac" name="__GNUC__" path="" value=""/>
+		<pathentry kind="mac" name="gcc" path="" value=""/>
+		<pathentry kind="mac" name="LM3S8962" path="" value=""/>
+		<pathentry kind="out" path=""/>
+	</storageModule>
+</cproject>
