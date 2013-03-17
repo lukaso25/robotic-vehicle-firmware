@@ -10,8 +10,13 @@
 *.so
 *.so.*
 *.dylib
+*.map
 
 # Executables
 *.exe
 *.out
+*.elf
 *.app
+*.hex
+*.bin
+

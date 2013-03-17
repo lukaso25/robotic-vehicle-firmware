@@ -102,44 +102,63 @@ __attribute__( ( naked ) ) void HardFault_Handler(void)
 	);
 }
 
+void ControlTask_task( void * param)
+{
+	while(1)
+	{
+
+	}
+}
+
+signed portBASE_TYPE ControlTaskInit( unsigned portBASE_TYPE priority)
+{
+
+	return xTaskCreate(ControlTask_task, (signed portCHAR *) "CTRL", 256, NULL, priority , NULL);
+}
+
+
+
 int main(void)
 {
 	//! inicializace základních periferií systému
 	SystemInit();
 
 	//! HeartBeat úloha indikaèní diody
-	StatusLEDInit();
-	if (xTaskCreate(StatusLED_task, (signed portCHAR *) "LED", 256, NULL, tskIDLE_PRIORITY +1, NULL) != pdPASS)
+	if (StatusLEDInit(tskIDLE_PRIORITY +1) != pdPASS)
 	{
 		//error
 	}
 
 	//! SlipSerial komunikace po seriové lince
-	SlipSerialInit(57600);
-	if (xTaskCreate(SlipSerial_task, (signed portCHAR *) "SLIP", 256, NULL, tskIDLE_PRIORITY +2, NULL) != pdPASS)
+	if (SlipSerialInit(tskIDLE_PRIORITY +2, 57600) != pdPASS)
 	{
 		//error
 	}
 
 	//! úloha øízení motorù
-	MotorControlInit();
-	if (xTaskCreate(MotorControl_task, (signed portCHAR *) "MOTOR", 256, NULL, tskIDLE_PRIORITY +4, NULL) != pdPASS)
+	if (MotorControlInit(tskIDLE_PRIORITY +4) != pdPASS)
 	{
 		//error
 	}
 
 	//! úloha akcelerometru
-	AccelerometrInit();
-	if (xTaskCreate(Accelerometer_task, (signed portCHAR *) "ACC", 256, NULL, tskIDLE_PRIORITY +3, NULL) != pdPASS)
+	if (AccelerometrInit(tskIDLE_PRIORITY +3) != pdPASS)
 	{
 		//error
 	}
 
+	//! úloha øízení  - tady budou kraviny kolem, logování atd
+	if ( ControlTaskInit(tskIDLE_PRIORITY +2) != pdPASS)
+	{
+		//error
+	}
+
+	/*
 	//! CANTest úloha
 	if (xTaskCreate(CANtest_task, (signed portCHAR *) "CAN", 256, NULL, tskIDLE_PRIORITY +1, NULL) != pdPASS)
 	{
 		//error
-	}
+	}*/
 
 
 #if configUSE_TRACE_FACILITY==1

@@ -27,10 +27,12 @@
 short int accs[2] = {0,0};
 
 // naètení a uložení hodnot zrychlení z akcelerometru
-short AccelerometerRead( void)
+signed short AccelerometerRead( void)
 {
 	unsigned long temp;
-	short err = 0;
+	signed short err;
+
+	//! JE TØEBA OPRAVIT ERROR HANDLING!!!
 
 	// Specify slave address
 	I2CMasterSlaveAddrSet(I2C_MASTER_BASE, ACC_I2C_ADR, false);
@@ -94,6 +96,8 @@ short AccelerometerRead( void)
 	}
 
 	return err;
+
+
 }
 
 //nulování akcelerometry, tepelná kompenzace
@@ -126,8 +130,13 @@ short AccelerometerBandgapTest( void)
 		//error happened
 	}
 
+	// NEED to be edited
 	//! nìkolik ètení pro získání prùmìru
-	vTaskDelay(20);
+	unsigned short i = 1;
+	while(i != 0)
+	{
+		i++;
+	}
 	err = AccelerometerRead();
 	err = AccelerometerRead();
 	err = AccelerometerRead();
@@ -216,7 +225,7 @@ short AccelerometerPowerUp( void)
 
 
 // inicializaèní funkce
-short AccelerometrInit( void)
+signed portBASE_TYPE  AccelerometrInit(  unsigned portBASE_TYPE priority)
 {
 	short temp;
 
@@ -234,12 +243,21 @@ short AccelerometrInit( void)
 	// zapnutí ACC
 	temp = AccelerometerPowerUp();
 
-	vTaskDelay(100);
+	// NEED to be edited
+	unsigned short i = 1;
+	while(i != 0)
+	{
+		i++;
+	}
 
 	// nulování ACC
 	temp = AccelerometerBandgapTest();
 
-	return temp;
+	// opravit logování chyb !!!
+	if (temp < 9)
+		return temp;
+
+	return xTaskCreate(Accelerometer_task, (signed portCHAR *) "ACC", 256, NULL, priority , NULL);;
 }
 
 // funkce reprezentující FreeRTOS úlohu

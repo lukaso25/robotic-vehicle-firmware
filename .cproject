@@ -36,13 +36,13 @@
 		<pathentry include="C:/Programs/GNU Tools ARM/arm-none-eabi/include" kind="inc" path="" system="true"/>
 		<pathentry include="C:/Programs/GNU Tools ARM/lib/gcc/arm-none-eabi/4.6.2/include" kind="inc" path="" system="true"/>
 		<pathentry include="C:/Programs/GNU Tools ARM/lib/gcc/arm-none-eabi/4.6.2/include-fixed" kind="inc" path="" system="true"/>
-		<pathentry include="C:/SP2/DiplomkaProj" kind="inc" path="" system="true"/>
-		<pathentry include="C:/SP2/DiplomkaProj/cmsis" kind="inc" path="" system="true"/>
-		<pathentry include="C:/SP2/DiplomkaProj/FreeRTOS/include" kind="inc" path="" system="true"/>
-		<pathentry include="C:/SP2/DiplomkaProj/lm3slib" kind="inc" path="" system="true"/>
-		<pathentry include="C:/SP2/DiplomkaProj/lm3slib/driverlib" kind="inc" path="" system="true"/>
-		<pathentry include="C:/SP2/DiplomkaProj/lm3slib/inc" kind="inc" path="" system="true"/>
-		<pathentry include="C:/SP2/DiplomkaProj/TraceRecorder/Include" kind="inc" path="" system="true"/>
+		<pathentry include="C:/SP2/robotic-vehicle-firmware" kind="inc" path="" system="true"/>
+		<pathentry include="C:/SP2/robotic-vehicle-firmware/cmsis" kind="inc" path="" system="true"/>
+		<pathentry include="C:/SP2/robotic-vehicle-firmware/FreeRTOS/include" kind="inc" path="" system="true"/>
+		<pathentry include="C:/SP2/robotic-vehicle-firmware/lm3slib" kind="inc" path="" system="true"/>
+		<pathentry include="C:/SP2/robotic-vehicle-firmware/lm3slib/driverlib" kind="inc" path="" system="true"/>
+		<pathentry include="C:/SP2/robotic-vehicle-firmware/lm3slib/inc" kind="inc" path="" system="true"/>
+		<pathentry include="C:/SP2/robotic-vehicle-firmware/TraceRecorder/Include" kind="inc" path="" system="true"/>
 		<pathentry kind="mac" name="__GNUC__" path="" value=""/>
 		<pathentry kind="mac" name="gcc" path="" value=""/>
 		<pathentry kind="mac" name="LM3S8962" path="" value=""/>

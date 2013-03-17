@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<history>
+   <processor signature="arm-none-eabi-gcc -O0 -nostartfiles -Map=robotic-vehicle-firmware.map -mcpu=cortex-m3 -mthumb -LC:\SP2\robotic-vehicle-firmware --gc-sections -TC:\SP2\robotic-vehicle-firmware\link.ld -g">
+      <target file="robotic-vehicle-firmware.elf" lastModified="13d794d168d">
+         <source file="..\obj\trcKernel.o" lastModified="13d794d082b"/>
+         <source file="..\obj\MotorControl.o" lastModified="13d794d08f6"/>
+         <source file="..\obj\i2c.o" lastModified="13d794d0963"/>
+         <source file="..\obj\core_cm3.o" lastModified="13d794d09c1"/>
+         <source file="..\obj\Main.o" lastModified="13d794d0a1e"/>
+         <source file="..\obj\SlipSerial.o" lastModified="13d794d0a9b"/>
+         <source file="..\obj\pwm.o" lastModified="13d794d0b18"/>
+         <source file="..\obj\uart.o" lastModified="13d794d0b95"/>
+         <source file="..\obj\trcPort.o" lastModified="13d794d0bd3"/>
+         <source file="..\obj\sysctl.o" lastModified="13d794d0c7f"/>
+         <source file="..\obj\trcBase.o" lastModified="13d794d0cbd"/>
+         <source file="..\obj\timers.o" lastModified="13d794d0cfc"/>
+         <source file="..\obj\can.o" lastModified="13d794d0d98"/>
+         <source file="..\obj\CANtest.o" lastModified="13d794d0dd6"/>
+         <source file="..\obj\gpio.o" lastModified="13d794d0e72"/>
+         <source file="..\obj\tasks.o" lastModified="13d794d0f1e"/>
+         <source file="..\obj\interrupt.o" lastModified="13d794d0f7b"/>
+         <source file="..\obj\startup_lm3s.o" lastModified="13d794d0fba"/>
+         <source file="..\obj\list.o" lastModified="13d794d1008"/>
+         <source file="..\obj\StatusLED.o" lastModified="13d794d1065"/>
+         <source file="..\obj\syscalls.o" lastModified="13d794d10c3"/>
+         <source file="..\obj\Accelerometer.o" lastModified="13d794d1120"/>
+         <source file="..\obj\adc.o" lastModified="13d794d119d"/>
+         <source file="..\obj\trcUser.o" lastModified="13d794d11cc"/>
+         <source file="..\obj\queue.o" lastModified="13d794d1268"/>
+         <source file="..\obj\port.o" lastModified="13d794d12b6"/>
+         <source file="..\obj\croutine.o" lastModified="13d794d1314"/>
+         <source file="..\obj\qei.o" lastModified="13d794d1371"/>
+         <source file="..\obj\cpu.o" lastModified="13d794d13a0"/>
+         <source file="..\obj\Regulator.o" lastModified="13d794d13cf"/>
+         <source file="..\obj\heap_2.o" lastModified="13d794d142d"/>
+      </target>
+   </processor>
+</history>

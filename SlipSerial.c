@@ -30,14 +30,17 @@
 #define MAX_PACKET_LENGH	(300)
 
 
-// objekty OS
+// OS objects objekty OS
 xSemaphoreHandle xTxMutex;
 char packet_buffer[MAX_PACKET_LENGH];
 static xQueueHandle xSerialReceive;
 
 //! inicializaèní funkce
-int SlipSerialInit(unsigned long int baudrate)
+signed portBASE_TYPE SlipSerialInit( unsigned portBASE_TYPE priority, unsigned long int baudrate)
 {
+	//! function return value
+	signed portBASE_TYPE error;
+
 	//! povolení hodin UART and GPIO module
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_UART1);
@@ -53,27 +56,35 @@ int SlipSerialInit(unsigned long int baudrate)
 	// Povolení pøerušení a jeho nastavení priority
 	UARTIntEnable(UART1_BASE, UART_INT_RX);
 
+	// nastavení priority pøerušení
 	IntPrioritySet(INT_UART1,(6<<5));
 	IntEnable(INT_UART1);
 
+	// vytvoøení pøijímací fronty
 	xSerialReceive = xQueueCreate( 32, ( unsigned portBASE_TYPE ) sizeof( char ) );
 
 	//! Povolení UART.
 	UARTEnable(UART1_BASE);
 
-	//! MUTEX ONLY FROM THREAD!!!
+
 	xTxMutex = xSemaphoreCreateMutex();
 	//vSemaphoreCreateBinary(xTxMutex); //- from interrupt
 
+	// vytvoøíme
+	error = xTaskCreate(SlipSerial_task, (signed portCHAR *) "SLIP", 256, NULL, tskIDLE_PRIORITY +2, NULL);
 
+	// ORAVIT
 	if (xTxMutex != NULL)
 	{
-		return 0; // sucess
+		return error; // sucess
 	}
 	else
 	{
-		return -1;// fail
+		return pdFAIL;// fail
 	}
+
+
+
 }
 
 //! odeslání ukonèovacího znaku
@@ -207,9 +218,9 @@ void SlipSerial_task( void * param)
 						{
 							//need to be tested
 						}
-						StatusLEDClearError(ERROR_COMM_SLIP);
-						myDrive.mot1.speed_des = packet_buffer[1]|(packet_buffer[2]<<8);
-						myDrive.mot2.speed_des = packet_buffer[3]|(packet_buffer[4]<<8);
+						ClearError(ERROR_COMM_SLIP);
+						myDrive.mot1.reg.desired = packet_buffer[1]|(packet_buffer[2]<<8);
+						myDrive.mot2.reg.desired = packet_buffer[3]|(packet_buffer[4]<<8);
 						MotorControlSetState(motorMode);
 						break;
 					case ID_MOTOR_MODE:
@@ -225,7 +236,8 @@ void SlipSerial_task( void * param)
 						{
 
 						}
-						memcpy(&myDrive.K,&packet_buffer[1],8);
+						memcpy(&myDrive.mot1.reg.K,&packet_buffer[1],8);
+						memcpy(&myDrive.mot2.reg.K,&packet_buffer[1],8);
 						break;
 					}
 				}
@@ -274,7 +286,7 @@ void SlipSerial_task( void * param)
 		} else
 		{
 			MotorControlSetState(MOTOR_SHUTDOWN);
-			StatusLEDSetError(ERROR_COMM_SLIP);
+			SetError(ERROR_COMM_SLIP);
 			//communication timeout
 		}
 	}

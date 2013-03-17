@@ -18,7 +18,9 @@
 
 #include <math.h>
 
+
 #include "MotorControl.h"
+#include "Regulator.h"
 #include "StatusLED.h"
 #include "SlipSerial.h"
 
@@ -268,14 +270,14 @@ long MeasureADC( void)
 
 	myDrive.mot1.current_total += myDrive.mot1.current_act = (short) adcval[0];
 	myDrive.mot2.current_total += myDrive.mot2.current_act = (short) adcval[1];
-	myDrive.batt_voltage = (short) adcval[2];
+	myDrive.mot1.reg.batt_voltage = myDrive.mot2.reg.batt_voltage = (short) adcval[2];
 
 	return pocet;
 
 }
 
 
-void MotorControlInit( void)
+signed portBASE_TYPE MotorControlInit( unsigned portBASE_TYPE priority)
 {
 	//Bridges GPIO init
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA|SYSCTL_PERIPH_GPIOB|SYSCTL_PERIPH_GPIOD|SYSCTL_PERIPH_GPIOE|SYSCTL_PERIPH_GPIOF|SYSCTL_PERIPH_GPIOG);
@@ -372,10 +374,9 @@ void MotorControlInit( void)
 	//PWMIntEnable(PWM_BASE, PWM_INT_GEN_0);
 	//IntEnable(INT_PWM0);*/
 
-	myDrive.mot1.speed_des = 0;
-	myDrive.mot2.speed_des = 0;
-	myDrive.K = 0.9;
-	myDrive.Ti = 0.2;
+	myDrive.mot2.reg.desired = myDrive.mot1.reg.desired = 0;
+	myDrive.mot2.reg.K = myDrive.mot1.reg.K = 0.9;
+	myDrive.mot2.reg.Ti = myDrive.mot1.reg.Ti = 0.2;
 
 	InitADC();
 
@@ -397,6 +398,8 @@ void MotorControlInit( void)
 
 	MotorControlSetState(MOTOR_RUNNING);
 
+	return xTaskCreate(MotorControl_task, (signed portCHAR *) "MOTOR", 256, NULL, priority , NULL);
+
 }
 
 void MotorControlSetState( enum MotorState st)
@@ -416,15 +419,15 @@ void MotorControlSetState( enum MotorState st)
 	case MOTOR_STOP:
 		GPIOPinTypeGPIOOutput( MOTOR_SHIFTER_OE_PORT, MOTOR_SHIFTER_OE);
 		GPIOPinWrite(MOTOR_SHIFTER_OE_PORT,MOTOR_SHIFTER_OE,(unsigned char)~MOTOR_SHIFTER_OE);
-		myDrive.mot1.speed_des = 0;
-		myDrive.mot2.speed_des = 0;
+		myDrive.mot1.reg.desired = 0;
+		myDrive.mot2.reg.desired = 0;
 		myDrive.state = st;
 		break;
 	case MOTOR_SHUTDOWN:
 		GPIOPinTypeGPIOOutput( MOTOR_SHIFTER_OE_PORT, MOTOR_SHIFTER_OE);
 		GPIOPinWrite(MOTOR_SHIFTER_OE_PORT,MOTOR_SHIFTER_OE,(unsigned char)MOTOR_SHIFTER_OE);
-		myDrive.mot1.speed_des = 0;
-		myDrive.mot2.speed_des = 0;
+		myDrive.mot1.reg.desired = 0;
+		myDrive.mot2.reg.desired = 0;
 		myDrive.state = st;
 		break;
 	default:
@@ -438,32 +441,33 @@ enum MotorState MotorControlGetState( void)
 	return myDrive.state;
 }
 
-short SpeedReg(struct MotorControl* mc, short measure)
+short SpeedReg(struct RegulatorParams * rp, short measurement)
 {
 	double vystup;
 
-	mc->speed_err = mc->speed_des - measure;
-	vystup = mc->sum + (myDrive.K*mc->speed_err);
-	mc->sum += myDrive.K * myDrive.Ti * mc->speed_err;
+	rp->error = rp->desired - measurement;
+	vystup = rp->sum + (rp->K*rp->error);
+	rp->sum += rp->K * rp->Ti * rp->error;
 
 	//omezení integraèní složky
-	if (mc->sum  > SUM_LIMIT)
-		mc->sum  = SUM_LIMIT;
-	if (mc->sum  < -SUM_LIMIT)
-		mc->sum  = -SUM_LIMIT;
+	if (rp->sum  > SUM_LIMIT)
+		rp->sum  = SUM_LIMIT;
+	if (rp->sum  < -SUM_LIMIT)
+		rp->sum  = -SUM_LIMIT;
 
 
 	//uprava výstupu podle napájecího napìtí
-	vystup = vystup * 538.0 / myDrive.batt_voltage;
+	vystup = vystup * 538.0 / rp->batt_voltage;
 
 	if (vystup >  MOTOR_PWM_PERIOD)
 		vystup =  MOTOR_PWM_PERIOD;
 	if (vystup < -MOTOR_PWM_PERIOD)
 		vystup = -MOTOR_PWM_PERIOD;
 
-
 	return (short) vystup;
 }
+
+//jednotka ruèního ovládání  - jak imolementovat
 
 short regvalues[6];
 void MotorControl_task( void * param)
@@ -492,10 +496,10 @@ void MotorControl_task( void * param)
 				switch (myDrive.state)
 				{
 				case MOTOR_RUNNING:
-					pwm = SpeedReg(&myDrive.mot1, speed.value);
+					pwm = SpeedReg(&myDrive.mot1.reg, speed.value);
 					break;
 				case MOTOR_MANUAL:
-					pwm = myDrive.mot1.speed_des;
+					pwm = myDrive.mot1.reg.desired;
 					break;
 				case MOTOR_FAILURE:
 				case MOTOR_STOP:
@@ -506,11 +510,11 @@ void MotorControl_task( void * param)
 				}
 
 				regvalues[2] = pwm;
-				regvalues[4] = myDrive.mot1.speed_err;
+				regvalues[4] = myDrive.mot1.reg.error;
 				if (xQueueSend(xMotorPWMQ1, &pwm, 10) != pdTRUE)
 				{
 					MotorControlSetState(MOTOR_FAILURE);
-					StatusLEDSetError(ERROR_MOTOR);
+					SetError(ERROR_MOTOR);
 				}
 			}
 			else if (lastMotor == MOTOR_2)
@@ -520,10 +524,10 @@ void MotorControl_task( void * param)
 				switch (myDrive.state)
 				{
 				case MOTOR_RUNNING:
-					pwm = SpeedReg(&myDrive.mot2, speed.value);
+					pwm = SpeedReg(&myDrive.mot2.reg, speed.value);
 					break;
 				case MOTOR_MANUAL:
-					pwm = myDrive.mot2.speed_des;
+					pwm = myDrive.mot2.reg.desired;
 					break;
 				case MOTOR_FAILURE:
 				case MOTOR_STOP:
@@ -534,23 +538,23 @@ void MotorControl_task( void * param)
 				}
 
 				regvalues[3] = pwm;
-				regvalues[5] = myDrive.mot2.speed_err;
+				regvalues[5] = myDrive.mot2.reg.error;
 				if (xQueueSend(xMotorPWMQ2, &pwm, 10) != pdTRUE)
 				{
 					MotorControlSetState(MOTOR_FAILURE);
-					StatusLEDSetError(ERROR_MOTOR);
+					SetError(ERROR_MOTOR);
 				}
 			}
 			else
 			{
 				MotorControlSetState(MOTOR_FAILURE);
-				StatusLEDSetError(ERROR_MOTOR);
+				SetError(ERROR_MOTOR);
 			}
 		}
 		else
 		{
 			MotorControlSetState(MOTOR_FAILURE);
-			StatusLEDSetError(ERROR_MOTOR);
+			SetError(ERROR_MOTOR);
 			//timeout
 			//fatal error
 		}
@@ -569,7 +573,7 @@ void MotorControl_task( void * param)
 
 			values[0] = myDrive.mot1.current_act;
 			values[1] = myDrive.mot2.current_act;
-			values[2] = myDrive.batt_voltage;
+			values[2] = myDrive.mot2.reg.batt_voltage;
 
 			//data ADC mìøení
 			SlipSend(ID_ADC,(char *) &values, sizeof(unsigned short[3]));
@@ -581,13 +585,13 @@ void MotorControl_task( void * param)
 			//! kontrola Fail statusu H-mostù
 
 			//! kontrola stavu baterie
-			if (myDrive.batt_voltage < 500)
+			if (myDrive.mot2.reg.batt_voltage < 500)
 			{
-				StatusLEDSetError(ERROR_BATT);
+				SetError(ERROR_BATT);
 				MotorControlSetState(MOTOR_SHUTDOWN); // pro maximální snížení spotøeby
 			}
 			else
-				StatusLEDClearError(ERROR_BATT);// dost možná redundantní
+				ClearError(ERROR_BATT);// dost možná redundantní
 
 		}
 
