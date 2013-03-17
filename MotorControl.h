@@ -2,7 +2,8 @@
 #define  __MOTORCONTROL_H__
 
 #include "CommonDefs.h"
-
+#include "Regulator.h"
+#include "FreeRTOS.h"
 
 #define MOTOR_PWM_PERIOD		(4000) //4000 pro 20 MHz 5 kHz //4000 pro 40MHz a 10kHz
 #define SPEED_REG_PERIOD		((20000000/50)-1) //pøednastavení QEI èasovaèe pro periodu 20ms (50Hz)
@@ -28,21 +29,18 @@ struct SensorActor
 
 struct MotorControl
 {
-	//nutné
-	short speed_des;
-	short speed_err;
 
-	double sum;
+	struct RegulatorParams reg;
 
 	//stats
 	//int speed_avg;
-	short speed_max;
-	long track;
+	//short speed_max;
+	//long track;
+
 	unsigned short current_act;
 	unsigned long current_total;
 
 	short qei_errors;
-
 
 };
 
@@ -51,28 +49,24 @@ struct DriveBlock
 	struct MotorControl mot1;
 	struct MotorControl mot2;
 
-	float K;
-	float Ti;
-
 	struct Position position;
-
-	unsigned short batt_voltage;
 
 	enum MotorState state;
 };
 
 struct DriveBlock myDrive;
+//struct RegulatorParams myReg;
 
-void PWMFault_IRQHandler( void);
-void PWMGen0_IRQHandler( void);
 
-void QEI0_IRQHandler( void);
-void QEI1_IRQHandler( void);
+signed portBASE_TYPE MotorControlInit( unsigned portBASE_TYPE priority);
 
-void MotorControlInit( void);
+
 void MotorControlSetState( enum MotorState st);
 enum MotorState MotorControlGetState( void);
 
+signed portBASE_TYPE MotorControlWaitData(portTickType timeout);
+
+//! FreeRTOS task
 void MotorControl_task( void * param);
 
 #endif//__MOTORCONTROL_H__
