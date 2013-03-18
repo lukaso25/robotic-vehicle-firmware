@@ -81,16 +81,6 @@ void StatusLED_task( void * pvParameters )
 			}
 		}
 
-		/*//pøeddìlièka odesílání výpisu úloh
-		if (prescaler-- == 0)
-		{
-			prescaler = 2;
-#if configUSE_TRACE_FACILITY==1
-			char tasklist[256];
-			vTaskList((signed char*)tasklist);
-			SlipSend(ID_TASKLIST,tasklist, strlen(tasklist));
-#endif
-		}*/
 	}
 }
 

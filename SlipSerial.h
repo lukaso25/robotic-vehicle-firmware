@@ -16,6 +16,10 @@ enum SLIP_ID
 	ID_REG_PARAMS = 0x17
 };
 
+extern void SlipSerialProcessPacket(char packet_buffer[], int length);
+
+extern void SlipSerialReceiveTimeout( void);
+
 /*!
  * \brief SlipSerialInit
  *
@@ -26,12 +30,12 @@ enum SLIP_ID
  * \note [any note about the function you might have]
  * \warning [any warning if necessary]
  */
-signed portBASE_TYPE SlipSerialInit( unsigned portBASE_TYPE priority, unsigned long int baudrate);
+signed portBASE_TYPE SlipSerialInit( unsigned portBASE_TYPE priority, unsigned long int baudrate, portTickType timeout);
 
 /*!
- * \brief StatusLEDInit
+ * \brief
  *
- * Funkce Inicializující modul StatusLed
+ *
  *
  * \return [information about return value]
  * \sa [see also section]
@@ -41,9 +45,7 @@ signed portBASE_TYPE SlipSerialInit( unsigned portBASE_TYPE priority, unsigned l
 void SlipEnd( void);
 
 /*!
- * \brief SlipSend
- *
- * Funkce Inicializující modul StatusLed
+ * \brief
  *
  * \return [information about return value]
  * \sa [see also section]
@@ -55,8 +57,6 @@ int SlipSend(char id, char * data, int len);
 /*!
  * \brief UART1_IRQHandler
  *
- * Funkce Inicializující modul StatusLed
- *
  * \return [information about return value]
  * \sa [see also section]
  * \note [any note about the function you might have]
@@ -67,7 +67,6 @@ void UART1_IRQHandler( void);
 /*!
  * \brief SlipSerial_task
  *
- * Funkce Inicializující modul StatusLed
  *
  * \return [information about return value]
  * \sa [see also section]

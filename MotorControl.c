@@ -436,6 +436,12 @@ void MotorControlSetState( enum MotorState st)
 	}
 }
 
+void MotorControlSetSpeed(signed short v1, signed short v2)
+{
+	myDrive.mot1.reg.desired = v1;
+	myDrive.mot2.reg.desired = v2;
+}
+
 enum MotorState MotorControlGetState( void)
 {
 	return myDrive.state;

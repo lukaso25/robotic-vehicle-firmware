@@ -66,7 +66,11 @@ enum MotorState MotorControlGetState( void);
 
 signed portBASE_TYPE MotorControlWaitData(portTickType timeout);
 
-//! FreeRTOS task
+
+void MotorControlSetSpeed(signed short v1, signed short v2);
+
+
+// FreeRTOS task
 void MotorControl_task( void * param);
 
 #endif//__MOTORCONTROL_H__

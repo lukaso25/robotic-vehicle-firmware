@@ -102,11 +102,64 @@ __attribute__( ( naked ) ) void HardFault_Handler(void)
 	);
 }
 
+//! režim motoru
+char motorMode = MOTOR_RUNNING;
+
+void SlipSerialProcessPacket(char packet_buffer[], int length)
+{
+	switch (packet_buffer[0])
+	{
+	case ID_MOTOR_ACT:
+		//máme pøijato :-)
+		if (length<5)
+		{
+			//poškozená data
+		}
+		else
+		{
+			//need to be tested
+		}
+		ClearError(ERROR_COMM_SLIP);
+		myDrive.mot1.reg.desired = packet_buffer[1]|(packet_buffer[2]<<8);
+		myDrive.mot2.reg.desired = packet_buffer[3]|(packet_buffer[4]<<8);
+		MotorControlSetState(motorMode);
+		break;
+	case ID_MOTOR_MODE:
+		if (length<2)
+		{
+			//poškozená data
+		}
+		motorMode = packet_buffer[1];
+		MotorControlSetState(motorMode);
+		break;
+	case ID_REG_PARAMS:
+		if (length<6)
+		{
+			//poškozená data
+		}
+		memcpy(&myDrive.mot1.reg.K,&packet_buffer[1],8);
+		memcpy(&myDrive.mot2.reg.K,&packet_buffer[1],8);
+		break;
+	}
+}
+
+void SlipSerialReceiveTimeout( void)
+{
+	MotorControlSetState(MOTOR_SHUTDOWN);
+	SetError(ERROR_COMM_SLIP);
+}
+
 void ControlTask_task( void * param)
 {
 	while(1)
 	{
 
+#if configUSE_TRACE_FACILITY==1
+			char tasklist[256];
+			vTaskList((signed char*)tasklist);
+			SlipSend(ID_TASKLIST,tasklist, strlen(tasklist));
+#endif
+		vTaskDelay(2000);
 	}
 }
 
@@ -130,7 +183,7 @@ int main(void)
 	}
 
 	//! SlipSerial komunikace po seriové lince
-	if (SlipSerialInit(tskIDLE_PRIORITY +2, 57600) != pdPASS)
+	if (SlipSerialInit(tskIDLE_PRIORITY +2, 57600, 200) != pdPASS)
 	{
 		//error
 	}
@@ -153,12 +206,11 @@ int main(void)
 		//error
 	}
 
-	/*
 	//! CANTest úloha
 	if (xTaskCreate(CANtest_task, (signed portCHAR *) "CAN", 256, NULL, tskIDLE_PRIORITY +1, NULL) != pdPASS)
 	{
 		//error
-	}*/
+	}
 
 
 #if configUSE_TRACE_FACILITY==1

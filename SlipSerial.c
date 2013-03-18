@@ -36,7 +36,7 @@ char packet_buffer[MAX_PACKET_LENGH];
 static xQueueHandle xSerialReceive;
 
 //! inicializaèní funkce
-signed portBASE_TYPE SlipSerialInit( unsigned portBASE_TYPE priority, unsigned long int baudrate)
+signed portBASE_TYPE SlipSerialInit( unsigned portBASE_TYPE priority, unsigned long int baudrate, portTickType timeout)
 {
 	//! function return value
 	signed portBASE_TYPE error;
@@ -82,8 +82,6 @@ signed portBASE_TYPE SlipSerialInit( unsigned portBASE_TYPE priority, unsigned l
 	{
 		return pdFAIL;// fail
 	}
-
-
 
 }
 
@@ -182,9 +180,6 @@ void UART1_IRQHandler( void)
 #endif
 }
 
-//! režim motoru
-char motorMode = MOTOR_RUNNING;
-
 //! funkce reprezentující FreeRTOS úlohu SLIP
 void SlipSerial_task( void * param)
 {
@@ -206,40 +201,8 @@ void SlipSerial_task( void * param)
 			case  SLIP_END:
 				if (received > 0)
 				{
-					switch (packet_buffer[0])
-					{
-					case ID_MOTOR_ACT:
-						//máme pøijato :-)
-						if (received<5)
-						{
-							//poškozená data
-						}
-						else
-						{
-							//need to be tested
-						}
-						ClearError(ERROR_COMM_SLIP);
-						myDrive.mot1.reg.desired = packet_buffer[1]|(packet_buffer[2]<<8);
-						myDrive.mot2.reg.desired = packet_buffer[3]|(packet_buffer[4]<<8);
-						MotorControlSetState(motorMode);
-						break;
-					case ID_MOTOR_MODE:
-						if (received<2)
-						{
-
-						}
-						motorMode = packet_buffer[1];
-						MotorControlSetState(motorMode);
-						break;
-					case ID_REG_PARAMS:
-						if (received<6)
-						{
-
-						}
-						memcpy(&myDrive.mot1.reg.K,&packet_buffer[1],8);
-						memcpy(&myDrive.mot2.reg.K,&packet_buffer[1],8);
-						break;
-					}
+					//process packet callback
+					SlipSerialProcessPacket(packet_buffer, received);
 				}
 				received = 0;
 				break;
@@ -285,9 +248,8 @@ void SlipSerial_task( void * param)
 
 		} else
 		{
-			MotorControlSetState(MOTOR_SHUTDOWN);
-			SetError(ERROR_COMM_SLIP);
-			//communication timeout
+			//communication timeout callback
+			SlipSerialReceiveTimeout();
 		}
 	}
 
