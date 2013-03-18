@@ -26,16 +26,10 @@ void SystemInit( void)
 {
 	//! CLOCK setup to 20 MHz
 	SysCtlClockSet(SYSCTL_SYSDIV_10 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_6MHZ);
-
 }
 
-/*static xQueueHandle xErrMess;
-void Status_task( void * params)
-{
 
-}*/
-
-/* kritická HOOK funkce indikující pøeteèení zásobníku nìkteré z úloh*/
+/* HOOK funkce indikující pøeteèení zásobníku nìkteré z úloh*/
 void vApplicationStackOverflowHook( xTaskHandle *pxTask, signed char *pcTaskName )
 {
 	( void ) pxTask;
@@ -120,8 +114,7 @@ void SlipSerialProcessPacket(char packet_buffer[], int length)
 			//need to be tested
 		}
 		ClearError(ERROR_COMM_SLIP);
-		myDrive.mot1.reg.desired = packet_buffer[1]|(packet_buffer[2]<<8);
-		myDrive.mot2.reg.desired = packet_buffer[3]|(packet_buffer[4]<<8);
+		MotorControlSetSpeed(packet_buffer[1]|(packet_buffer[2]<<8), packet_buffer[3]|(packet_buffer[4]<<8));
 		MotorControlSetState(motorMode);
 		break;
 	case ID_MOTOR_MODE:
@@ -145,6 +138,7 @@ void SlipSerialProcessPacket(char packet_buffer[], int length)
 
 void SlipSerialReceiveTimeout( void)
 {
+	// communication timeout
 	MotorControlSetState(MOTOR_SHUTDOWN);
 	SetError(ERROR_COMM_SLIP);
 }
@@ -153,7 +147,6 @@ void ControlTask_task( void * param)
 {
 	while(1)
 	{
-
 #if configUSE_TRACE_FACILITY==1
 			char tasklist[256];
 			vTaskList((signed char*)tasklist);
@@ -165,7 +158,6 @@ void ControlTask_task( void * param)
 
 signed portBASE_TYPE ControlTaskInit( unsigned portBASE_TYPE priority)
 {
-
 	return xTaskCreate(ControlTask_task, (signed portCHAR *) "CTRL", 256, NULL, priority , NULL);
 }
 

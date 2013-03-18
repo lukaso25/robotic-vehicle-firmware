@@ -13,12 +13,8 @@
 #include "task.h"
 #include "semphr.h"
 #include "queue.h"
-#include "timers.h"
-
-#include "trcUser.h"
 
 #include "CommonDefs.h"
-#include "SlipSerial.h"
 
 //! number of recorded errors
 #define ERROR_COUNT 10
@@ -80,7 +76,6 @@ void StatusLED_task( void * pvParameters )
 				vTaskDelay(1200);
 			}
 		}
-
 	}
 }
 

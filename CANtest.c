@@ -42,7 +42,7 @@ void CANtest_task( void * param)
 	CANEnable(CAN0_BASE);
 
 	// Konfigurace odesílaného objektu
-	sMsgObjectTx.ulMsgID = 0x401;
+	sMsgObjectTx.ulMsgID = 0x02;
 	sMsgObjectTx.ulFlags = 0;
 	sMsgObjectTx.ulMsgLen = 8;
 	sMsgObjectTx.pucMsgData = ucBufferOut;

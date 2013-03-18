@@ -1,8 +1,5 @@
 #include "SlipSerial.h"
 
-#include "StatusLED.h"
-#include "MotorControl.h"
-
 #include "FreeRTOS.h"
 #include "task.h"
 #include "semphr.h"
@@ -125,13 +122,13 @@ int SlipSend(char id, char * data, int len)
 			UARTCharPut(UART1_BASE,SLIP_ESC_END);
 			break;
 
-		// if it's the same code as an ESC character,  we send a special two character code so as not to make the receiver think we sent an ESC
+			// if it's the same code as an ESC character,  we send a special two character code so as not to make the receiver think we sent an ESC
 		case SLIP_ESC:
 			UARTCharPut(UART1_BASE,SLIP_ESC);
 			UARTCharPut(UART1_BASE,SLIP_ESC_ESC);
 			break;
 
-		// otherwise, we just send the character
+			// otherwise, we just send the character
 		default:
 			UARTCharPut(UART1_BASE,*data);
 		}
@@ -168,7 +165,7 @@ void UART1_IRQHandler( void)
 	//pøedej øízení OS
 	if( xHigherPriorityTaskWoken != pdFALSE )
 	{
-			taskYIELD();
+		taskYIELD();
 	}
 
 	// nuluj pøíznak pøerušení
@@ -246,7 +243,8 @@ void SlipSerial_task( void * param)
 				break;
 			}
 
-		} else
+		}
+		else
 		{
 			//communication timeout callback
 			SlipSerialReceiveTimeout();

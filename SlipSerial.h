@@ -2,7 +2,6 @@
 #define  __SLIPSERIAL_H__
 
 #include "FreeRTOS.h"
-#include "task.h"
 
 enum SLIP_ID
 {
@@ -15,27 +14,36 @@ enum SLIP_ID
 	ID_TIME_STAMP = 0x16,
 	ID_REG_PARAMS = 0x17
 };
-
+/*!
+ * \brief Funkce volaná pøi korektním pøijmu packetu
+ *
+ * \param packet_buffer[] pole pøijatých bajtù
+ * \param length velikost paketu
+ * \return void
+ * \note Tato funkce musí být implementována v jiném modulu
+ * \warning využívá FreeRTOS
+ */
 extern void SlipSerialProcessPacket(char packet_buffer[], int length);
 
+/*!
+ * \brief Funkce volaná pøi vypršení nastaveného timeoutu
+ *
+ * \note Tato funkce musí být implementována v jiném modulu
+ * \warning využívá FreeRTOS
+ */
 extern void SlipSerialReceiveTimeout( void);
 
 /*!
  * \brief SlipSerialInit
  *
- * Funkce Inicializující modul StatusLed
- *
  * \return [information about return value]
- * \sa [see also section]
  * \note [any note about the function you might have]
- * \warning [any warning if necessary]
+ * \warning využívá FreeRTOS
  */
 signed portBASE_TYPE SlipSerialInit( unsigned portBASE_TYPE priority, unsigned long int baudrate, portTickType timeout);
 
 /*!
  * \brief
- *
- *
  *
  * \return [information about return value]
  * \sa [see also section]
