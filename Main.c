@@ -148,15 +148,21 @@ void ControlTask_task( void * param)
 	while(1)
 	{
 #if configUSE_TRACE_FACILITY==1
+		//každé 2s
+		if (taskListPre == 0)
+		{
+			taskListPre = 100;
+
 			char tasklist[256];
 			vTaskList((signed char*)tasklist);
 			SlipSend(ID_TASKLIST,tasklist, strlen(tasklist));
+		}
 #endif
 		vTaskDelay(2000);
 	}
 }
 
-signed portBASE_TYPE ControlTaskInit( unsigned portBASE_TYPE priority)
+signed portBASE_TYPE ControlTaskInit( unsigned portBASE_TYPE priority )
 {
 	return xTaskCreate(ControlTask_task, (signed portCHAR *) "CTRL", 256, NULL, priority , NULL);
 }
@@ -169,7 +175,7 @@ int main(void)
 	SystemInit();
 
 	//! HeartBeat úloha indikaèní diody
-	if (StatusLEDInit(tskIDLE_PRIORITY +1) != pdPASS)
+	if (StatusLEDInit(tskIDLE_PRIORITY+1) != pdPASS)
 	{
 		//error
 	}
@@ -180,10 +186,10 @@ int main(void)
 		//error
 	}
 
-	//! úloha øízení motorù
-	if (MotorControlInit(tskIDLE_PRIORITY +4) != pdPASS)
+	//! MotorControl module initialization
+	if (MotorControlInit(tskIDLE_PRIORITY+4) != pdPASS)
 	{
-		//error
+		// error occurred during MotorControl module initialization
 	}
 
 	//! úloha akcelerometru
@@ -198,7 +204,7 @@ int main(void)
 		//error
 	}
 
-	//! CANTest úloha
+	//! CANTest task
 	if (xTaskCreate(CANtest_task, (signed portCHAR *) "CAN", 256, NULL, tskIDLE_PRIORITY +1, NULL) != pdPASS)
 	{
 		//error
@@ -206,16 +212,17 @@ int main(void)
 
 
 #if configUSE_TRACE_FACILITY==1
-	//! aktivace trasování objektù jádra OS
+	//! FreeRTOs kernel object trace record start
 	if (uiTraceStart() != 1)
 		while(1){};
 #endif
 
-	//! spuštìní plánovaèe úloh freeRTOS
+	//! FreeRTOS scheduler start
 	vTaskStartScheduler();
 
-	//! sem se nesmíme dostat!
+	//! never entering code
 	GPIOPinWrite(LED_RED_PORT, LED_RED, ~LED_RED);
 	while(1){};
 	return 0;
 }
+

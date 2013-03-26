@@ -62,6 +62,8 @@ static xQueueHandle xSpeedActQ;
 static xQueueHandle xMotorPWMQ1;
 static xQueueHandle xMotorPWMQ2;
 
+static xSemaphoreHandle xWaitData;
+
 void PWMFault_IRQHandler( void)
 {
 	//error
@@ -396,6 +398,13 @@ signed portBASE_TYPE MotorControlInit( unsigned portBASE_TYPE priority)
 
 	}
 
+	//
+	vSemaphoreCreateBinary( xWaitData );
+	if( xWaitData == NULL )
+	{
+
+	}
+
 	MotorControlSetState(MOTOR_RUNNING);
 
 	return xTaskCreate(MotorControl_task, (signed portCHAR *) "MOTOR", 256, NULL, priority , NULL);
@@ -436,11 +445,25 @@ void MotorControlSetState( enum MotorState st)
 	}
 }
 
+signed portBASE_TYPE MotorControlWaitData(portTickType timeout)
+{
+	return xSemaphoreTake( xWaitData, timeout );
+			// See if we can obtain the semaphore. If the semaphore is not available
+			// wait 10 ticks to see if it becomes free.
+			//if( xSemaphoreTake( xSemaphore, ( portTickType ) 10 ) == pdTRUE )
+			//{
+			// We were able to obtain the semaphore and can now access the
+			// shared resource.
+			// ...
+}
+
 void MotorControlSetSpeed(signed short v1, signed short v2)
 {
 	myDrive.mot1.reg.desired = v1;
 	myDrive.mot2.reg.desired = v2;
 }
+
+
 
 enum MotorState MotorControlGetState( void)
 {
@@ -598,6 +621,15 @@ void MotorControl_task( void * param)
 			}
 			else
 				ClearError(ERROR_BATT);// dost možná redundantní
+
+			/*
+			 * if( xSemaphoreGive( xSemaphore ) != pdTRUE )
+{
+// We would expect this call to fail because we cannot give
+// a semaphore without first "taking" it!
+}
+			 * */
+
 
 		}
 

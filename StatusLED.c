@@ -16,63 +16,63 @@
 
 #include "CommonDefs.h"
 
-//! number of recorded errors
-#define ERROR_COUNT 10
-
-//! limit value of recorded error
-#define ERROR_LIMIT 200
-
 //! array of errors
 short errors[ERROR_COUNT];
 
+
+/*
+ * \brief StatusLED module FreeRTOS task
+ */
+void StatusLED_task( void * pvParameters );
+
 signed portBASE_TYPE StatusLEDInit( unsigned portBASE_TYPE priority)
 {
+	// temporary variable
 	short i;
 
-	//! init GPIO
+	// GPIO module initialization, pin connection
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
-	GPIOPinTypeGPIOOutput(LED_RED_PORT,LED_RED);//LED
+	GPIOPinTypeGPIOOutput(LED_RED_PORT,LED_RED);
 
-	//! default values
+	// default values for array of errors
 	for (i = 0; i < ERROR_COUNT; i++)
 	{
 		errors[i] = 0;
 	}
 
-	//! add default singel flash error
+	// add default single flash - running indicator - heard beat
 	errors[ERROR_OK] = 1;
 
-	//! task creation
+	// finally we create task
 	return xTaskCreate(StatusLED_task, (signed portCHAR *) "LED", 256, NULL, priority, NULL);
-
 }
 
 void StatusLED_task( void * pvParameters )
 {
-	//! general variables
-	//short prescaler = 0;
+	// general variables
 	short i;
 	short j;
 
-	//! never-ending loop
+	// never-ending task loop
 	while(1)
 	{
-		//projdi jednotlivé chybové úrovnì
+		// for entire error kinds
 		for (j = 1; j < ERROR_COUNT; j++)
 		{
-			// vyblikat kód?
+			// is error present?
 			if (errors[j]>0)
 			{
-				// poèet bliknutí
+				// how many flashes?
 				for (i = 0; i < j; i++)
 				{
-					//! code for one flash
+					// code for one flash
 					GPIOPinWrite(LED_RED_PORT, LED_RED, ~LED_RED);
 					vTaskDelay(80);
 					GPIOPinWrite(LED_RED_PORT, LED_RED, LED_RED);
 					vTaskDelay(320);
 				}
-				// time delay between every error flashes
+
+				// time delay between every flash
 				vTaskDelay(1200);
 			}
 		}
@@ -81,9 +81,9 @@ void StatusLED_task( void * pvParameters )
 
 void SetError( enum Err err)
 {
-	//! for valid error number
+	// for valid error number
 	if (err< ERROR_COUNT)
-		//! increment error occures
+		// increment error occures
 		if (errors[err]<ERROR_LIMIT)
 			errors[err]++;
 }
@@ -91,9 +91,9 @@ void SetError( enum Err err)
 void ClearError( enum Err err)
 {
 	//! NEED TO BE ADDED
-	//! for valid error number
+	// for valid error number
 	if (err< ERROR_COUNT)
-		//! clear all error occures
+		// clear all error occures
 		if (errors[err]>0)
 			errors[err] = 0;
 }

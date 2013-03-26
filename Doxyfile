@@ -26,13 +26,13 @@ DOXYFILE_ENCODING      = UTF-8
 # identify the project. Note that if you do not use Doxywizard you need 
 # to put quotes around the project name if it contains spaces.
 
-PROJECT_NAME           = robotic-vehicle-firmware
+PROJECT_NAME           = "Robotic vehicle firmware API"
 
 # The PROJECT_NUMBER tag can be used to enter a project or revision number. 
 # This could be handy for archiving the generated documentation or 
 # if some version control system is used.
 
-PROJECT_NUMBER         = 
+PROJECT_NUMBER         = "Diploma thesis 0.1"
 
 # Using the PROJECT_BRIEF tag one can provide an optional one line description 
 # for a project that appears at the top of each page and should give viewer 
@@ -52,7 +52,7 @@ PROJECT_LOGO           =
 # If a relative path is entered, it will be relative to the location 
 # where doxygen was started. If left blank the current directory will be used.
 
-OUTPUT_DIRECTORY       = C:/doxygen_doku
+OUTPUT_DIRECTORY       = C:/SP2/doku
 
 # If the CREATE_SUBDIRS tag is set to YES, then doxygen will create 
 # 4096 sub-directories (in 2 levels) under the output directory of each output 
@@ -74,7 +74,7 @@ CREATE_SUBDIRS         = NO
 # Polish, Portuguese, Romanian, Russian, Serbian, Serbian-Cyrillic, Slovak, 
 # Slovene, Spanish, Swedish, Ukrainian, and Vietnamese.
 
-OUTPUT_LANGUAGE        = Czech
+OUTPUT_LANGUAGE        = English
 
 # If the BRIEF_MEMBER_DESC tag is set to YES (the default) Doxygen will 
 # include brief member descriptions after the members that are listed in 
@@ -675,7 +675,11 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT                  = C:/SP2/robotic-vehicle-firmware
+INPUT                  = StatusLED.h \
+                         StatusLED.c \
+                         Main.h \
+                         MotorControl.h \
+                         MotorControl.c
 
 # This tag can be used to specify the character encoding of the source files 
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is 
@@ -832,7 +836,7 @@ FILTER_SOURCE_PATTERNS =
 # Note: To get rid of all source code in the generated output, make sure also 
 # VERBATIM_HEADERS is set to NO.
 
-SOURCE_BROWSER         = YES
+SOURCE_BROWSER         = NO
 
 # Setting the INLINE_SOURCES tag to YES will include the body 
 # of functions and classes directly in the documentation.
@@ -977,13 +981,13 @@ HTML_EXTRA_FILES       =
 # 180 is cyan, 240 is blue, 300 purple, and 360 is red again. 
 # The allowed range is 0 to 359.
 
-HTML_COLORSTYLE_HUE    = 220
+HTML_COLORSTYLE_HUE    = 113
 
 # The HTML_COLORSTYLE_SAT tag controls the purity (or saturation) of 
 # the colors in the HTML output. For a value of 0 the output will use 
 # grayscales only. A value of 255 will produce the most vivid colors.
 
-HTML_COLORSTYLE_SAT    = 100
+HTML_COLORSTYLE_SAT    = 97
 
 # The HTML_COLORSTYLE_GAMMA tag controls the gamma correction applied to 
 # the luminance component of the colors in the HTML output. Values below 
@@ -992,7 +996,7 @@ HTML_COLORSTYLE_SAT    = 100
 # so 80 represents a gamma of 0.8, The value 220 represents a gamma of 2.2, 
 # and 100 does not change the gamma.
 
-HTML_COLORSTYLE_GAMMA  = 80
+HTML_COLORSTYLE_GAMMA  = 149
 
 # If the HTML_TIMESTAMP tag is set to YES then the footer of each generated HTML 
 # page will contain the date and time when the page was generated. Setting 
@@ -1066,14 +1070,14 @@ GENERATE_HTMLHELP      = YES
 # can add a path in front of the file if the result should not be 
 # written to the html output directory.
 
-CHM_FILE               = 
+CHM_FILE               = api_reference.chm
 
 # If the GENERATE_HTMLHELP tag is set to YES, the HHC_LOCATION tag can 
 # be used to specify the location (absolute path including file name) of 
 # the HTML help compiler (hhc.exe). If non-empty doxygen will try to run 
 # the HTML help compiler on the generated index.hhp.
 
-HHC_LOCATION           = 
+HHC_LOCATION           = "C:/Program Files/HTML Help Workshop/hhc.exe"
 
 # If the GENERATE_HTMLHELP tag is set to YES, the GENERATE_CHI flag 
 # controls if a separate .chi index file is generated (YES) or that 
@@ -1229,7 +1233,7 @@ FORMULA_TRANSPARENT    = YES
 # output. When enabled you may also need to install MathJax separately and 
 # configure the path to it using the MATHJAX_RELPATH option.
 
-USE_MATHJAX            = NO
+USE_MATHJAX            = YES
 
 # When MathJax is enabled you need to specify the location relative to the 
 # HTML output directory using the MATHJAX_RELPATH option. The destination 
@@ -1274,7 +1278,7 @@ SERVER_BASED_SEARCH    = NO
 # If the GENERATE_LATEX tag is set to YES (the default) Doxygen will 
 # generate Latex output.
 
-GENERATE_LATEX         = NO
+GENERATE_LATEX         = YES
 
 # The LATEX_OUTPUT tag is used to specify where the LaTeX docs will be put. 
 # If a relative path is entered the value of OUTPUT_DIRECTORY will be 
@@ -1300,7 +1304,7 @@ MAKEINDEX_CMD_NAME     = makeindex
 # LaTeX documents. This may be useful for small projects and may help to 
 # save some trees in general.
 
-COMPACT_LATEX          = YES
+COMPACT_LATEX          = NO
 
 # The PAPER_TYPE tag can be used to set the paper type that is used 
 # by the printer. Possible values are: a4, letter, legal and 
@@ -1332,7 +1336,7 @@ LATEX_FOOTER           =
 # contain links (just like the HTML output) instead of page references 
 # This makes the output suitable for online browsing using a pdf viewer.
 
-PDF_HYPERLINKS         = NO
+PDF_HYPERLINKS         = YES
 
 # If the USE_PDFLATEX tag is set to YES, pdflatex will be used instead of 
 # plain latex in the generated Makefile. Set this option to YES to get a 
@@ -1374,7 +1378,7 @@ LATEX_BIB_STYLE        = plain
 # The RTF output is optimized for Word 97 and may not look very pretty with 
 # other RTF readers or editors.
 
-GENERATE_RTF           = YES
+GENERATE_RTF           = NO
 
 # The RTF_OUTPUT tag is used to specify where the RTF docs will be put. 
 # If a relative path is entered the value of OUTPUT_DIRECTORY will be 
@@ -1386,7 +1390,7 @@ RTF_OUTPUT             = rtf
 # RTF documents. This may be useful for small projects and may help to 
 # save some trees in general.
 
-COMPACT_RTF            = YES
+COMPACT_RTF            = NO
 
 # If the RTF_HYPERLINKS tag is set to YES, the RTF that is generated 
 # will contain hyperlink fields. The RTF file will 
@@ -1395,7 +1399,7 @@ COMPACT_RTF            = YES
 # programs which support those fields. 
 # Note: wordpad (write) and others do not support links.
 
-RTF_HYPERLINKS         = YES
+RTF_HYPERLINKS         = NO
 
 # Load style sheet definitions from file. Syntax is similar to doxygen's 
 # config file, i.e. a series of assignments. You only have to provide 
@@ -1531,7 +1535,7 @@ ENABLE_PREPROCESSING   = YES
 # compilation will be performed. Macro expansion can be done in a controlled 
 # way by setting EXPAND_ONLY_PREDEF to YES.
 
-MACRO_EXPANSION        = YES
+MACRO_EXPANSION        = NO
 
 # If the EXPAND_ONLY_PREDEF and MACRO_EXPANSION tags are both set to YES 
 # then the macro expansion is limited to the macros specified with the 
