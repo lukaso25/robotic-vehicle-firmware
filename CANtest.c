@@ -20,10 +20,12 @@
 void CANtest_task( void * param)
 {
 	// buffers
-	//tCANMsgObject sMsgObjectRx;
+	tCANMsgObject sMsgObjectRemoteTx;
+	tCANMsgObject sMsgObjectRx;
 	tCANMsgObject sMsgObjectTx;
-	//unsigned char ucBufferIn[8];
-	unsigned char ucBufferOut[8] = "AhojCAN\0";
+	unsigned char ucBufferRemoteOut[8]  = "0123REM\0";
+	unsigned char ucBufferIn[4];
+	unsigned char ucBufferOut[8] = "\0\0\0\0\0\0\0\0";
 
 	//IO init
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
@@ -41,6 +43,22 @@ void CANtest_task( void * param)
 	// Povolení CAN0, ukonèení inicializace
 	CANEnable(CAN0_BASE);
 
+	//konfigurace pøijímacího objektu
+	sMsgObjectRx.ulMsgID = 0x04;
+	sMsgObjectRx.ulMsgIDMask = 0;
+	sMsgObjectRx.ulFlags = 0;
+	sMsgObjectRx.ulMsgLen = 4;
+	sMsgObjectRx.pucMsgData = ucBufferIn;
+	CANMessageSet(CAN0_BASE, 4, &sMsgObjectRx, MSG_OBJ_TYPE_RX);
+
+
+	// Konfigurace odesílaného remote objektu
+	sMsgObjectRemoteTx.ulMsgID = 0x03;
+	sMsgObjectRemoteTx.ulFlags = 0;
+	sMsgObjectRemoteTx.ulMsgLen = 8;
+	sMsgObjectRemoteTx.pucMsgData = ucBufferRemoteOut;
+	CANMessageSet(CAN0_BASE, 3, &sMsgObjectRemoteTx, MSG_OBJ_TYPE_RXTX_REMOTE);
+
 	// Konfigurace odesílaného objektu
 	sMsgObjectTx.ulMsgID = 0x02;
 	sMsgObjectTx.ulFlags = 0;
@@ -50,9 +68,19 @@ void CANtest_task( void * param)
 
 	vTaskDelay(100);
 
-	// prázdná nekoneèná smyèka s aktivním èekáním
+	// nekoneèná smyèka s aktivním èekáním na pøíchozí zprávu s následným odesláním
 	while(1)
 	{
-		vTaskDelay(1000);
+		vTaskDelay(1);
+		while((CANStatusGet(CAN0_BASE, CAN_STS_NEWDAT) & (3<<3)) == 0)
+		{
+			vTaskDelay(1);
+		}
+		// Read the message out of the message object.
+		CANMessageGet(CAN0_BASE, 4, &sMsgObjectRx, true);
+
+		ucBufferOut[0]++;
+		ucBufferOut[1] = ucBufferIn[0];
+		CANMessageSet(CAN0_BASE, 2, &sMsgObjectTx, MSG_OBJ_TYPE_TX);
 	}
 }

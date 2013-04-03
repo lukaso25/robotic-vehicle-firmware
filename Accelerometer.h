@@ -3,7 +3,21 @@
 
 #include "FreeRTOS.h"
 
-signed portBASE_TYPE  AccelerometrInit(  unsigned portBASE_TYPE priority);
+/*! \file Accelerometer.h
+ *  \author Lukas Otava
+ *  \date 2013
+ *  \defgroup Accelerometer Accelerometer module
+ *
+ *
+ *
+ * */
+
+short int accData[2];
+
+
+signed portBASE_TYPE  AccelerometerInit(  unsigned portBASE_TYPE priority);
+
+signed portBASE_TYPE AccelerometerRequestData( void);
 
 void Accelerometer_task( void * pvParameters );
 

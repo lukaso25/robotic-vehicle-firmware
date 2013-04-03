@@ -23,8 +23,11 @@
 //adresa akcelerometru
 #define ACC_I2C_ADR		(0x20>>1)
 
+
+xSemaphoreHandle xRequestAccData;
+
 //místo pro naètená zrychlení
-short int accs[2] = {0,0};
+short int accData[2] = {0,0};
 
 // naètení a uložení hodnot zrychlení z akcelerometru
 signed short AccelerometerRead( void)
@@ -54,8 +57,8 @@ signed short AccelerometerRead( void)
 	I2CMasterControl(I2C_MASTER_BASE, I2C_MASTER_CMD_BURST_RECEIVE_START);
 	// Delay until transmission completes
 	while(I2CMasterBusy(I2C_MASTER_BASE)){};
-	accs[0] = 0;
-	accs[0] = I2CMasterDataGet(I2C_MASTER_BASE)<<8;
+	accData[0] = 0;
+	accData[0] = I2CMasterDataGet(I2C_MASTER_BASE)<<8;
 	if((temp = I2CMasterErr(I2C_MASTER_BASE)) != 0)
 	{
 		err = -1;
@@ -66,7 +69,7 @@ signed short AccelerometerRead( void)
 	I2CMasterControl(I2C_MASTER_BASE, I2C_MASTER_CMD_BURST_RECEIVE_CONT);
 	// Delay until transmission completes
 	while(I2CMasterBusy(I2C_MASTER_BASE)){};
-	accs[0] |= I2CMasterDataGet(I2C_MASTER_BASE)&0xFF;
+	accData[0] |= I2CMasterDataGet(I2C_MASTER_BASE)&0xFF;
 	if((temp = I2CMasterErr(I2C_MASTER_BASE)) != 0)
 	{
 		err = -1;
@@ -77,8 +80,8 @@ signed short AccelerometerRead( void)
 	I2CMasterControl(I2C_MASTER_BASE, I2C_MASTER_CMD_BURST_RECEIVE_CONT);
 	// Delay until transmission completes
 	while(I2CMasterBusy(I2C_MASTER_BASE)){};
-	accs[1] = 0;
-	accs[1] = I2CMasterDataGet(I2C_MASTER_BASE)<<8;
+	accData[1] = 0;
+	accData[1] = I2CMasterDataGet(I2C_MASTER_BASE)<<8;
 	if((temp = I2CMasterErr(I2C_MASTER_BASE)) != 0)
 	{
 		err = -1;
@@ -88,7 +91,7 @@ signed short AccelerometerRead( void)
 	I2CMasterControl(I2C_MASTER_BASE, I2C_MASTER_CMD_BURST_RECEIVE_FINISH);
 	// Delay until transmission completes
 	while(I2CMasterBusy(I2C_MASTER_BASE)){};
-	accs[1] |= I2CMasterDataGet(I2C_MASTER_BASE)&0xFF;
+	accData[1] |= I2CMasterDataGet(I2C_MASTER_BASE)&0xFF;
 	if((temp = I2CMasterErr(I2C_MASTER_BASE)) != 0)
 	{
 		err = -1;
@@ -225,7 +228,7 @@ short AccelerometerPowerUp( void)
 
 
 // inicializaèní funkce
-signed portBASE_TYPE  AccelerometrInit(  unsigned portBASE_TYPE priority)
+signed portBASE_TYPE  AccelerometerInit(  unsigned portBASE_TYPE priority)
 {
 	short temp;
 
@@ -257,25 +260,38 @@ signed portBASE_TYPE  AccelerometrInit(  unsigned portBASE_TYPE priority)
 	if (temp < 9)
 		return temp;
 
+	vSemaphoreCreateBinary( xRequestAccData );
+	if( xRequestAccData == NULL )
+	{
+		return pdFAIL;
+	}
+
 	return xTaskCreate(Accelerometer_task, (signed portCHAR *) "ACC", 256, NULL, priority , NULL);;
 }
 
 // funkce reprezentující FreeRTOS úlohu
 void Accelerometer_task( void * pvParameters )
 {
-
 	while(1)
 	{
 		//naètení
+		if ( xSemaphoreTake( xRequestAccData, 100 ) == pdPASS )
+		{
+
+		}
 		if (AccelerometerRead()<0)
 		{
 			//error
 		}
 
 		//odeslání a èekání
-		SlipSend(ID_ACC_STRUCT,(char *) &accs,2*sizeof(short int));
-		vTaskDelay(20);
 	}
 	//vTaskDelete( NULL );
+}
 
+signed portBASE_TYPE AccelerometerRequestData( void)
+{
+	// We would expect this call to fail because we cannot give
+	// a semaphore without first "taking" it!
+	return xSemaphoreGive( xRequestAccData );
 }

@@ -22,51 +22,362 @@
 #include "MotorControl.h"
 #include "Regulator.h"
 #include "StatusLED.h"
-#include "SlipSerial.h"
 
-#define ABS(x) ((x)<0?-x:x)
+xQueueHandle xSpeedActQ;
+xQueueHandle xMotorPWMQ1;
+xQueueHandle xMotorPWMQ2;
 
-//BRIDGE 0 => motor L or R ??
-
-#define BRIDGE0_EN				(GPIO_PIN_7)
-#define BRIDGE0_EN_PORT			(GPIO_PORTD_BASE)
-#define BRIDGE0_IN1				(GPIO_PIN_0)
-#define BRIDGE0_IN1_PORT		(GPIO_PORTF_BASE)
-#define BRIDGE0_IN2				(GPIO_PIN_1)
-#define BRIDGE0_IN2_PORT		(GPIO_PORTG_BASE)
-#define BRIDGE0_FS				(GPIO_PIN_4)
-#define BRIDGE0_FS_PORT			(GPIO_PORTB_BASE)
-
-#define BRIDGE1_EN				(GPIO_PIN_1)
-#define BRIDGE1_EN_PORT			(GPIO_PORTF_BASE)
-#define BRIDGE1_IN1				(GPIO_PIN_0)
-#define BRIDGE1_IN1_PORT		(GPIO_PORTB_BASE)
-#define BRIDGE1_IN2				(GPIO_PIN_1)
-#define BRIDGE1_IN2_PORT		(GPIO_PORTB_BASE)
-#define BRIDGE1_FS				(GPIO_PIN_5)
-#define BRIDGE1_FS_PORT			(GPIO_PORTB_BASE)
-
-
-#define MOTOR_SHIFTER_OE		(GPIO_PIN_7)
-#define MOTOR_SHIFTER_OE_PORT	(GPIO_PORTA_BASE)
-
-#define QEI0_PORT	(GPIO_PORTC_BASE)
-#define QEI0_PHA	(GPIO_PIN_4)
-#define QEI0_PHB	(GPIO_PIN_6)
-
-#define QEI1_PORT	(GPIO_PORTE_BASE)
-#define QEI1_PHA	(GPIO_PIN_3)
-#define QEI1_PHB	(GPIO_PIN_2)
-
-static xQueueHandle xSpeedActQ;
-static xQueueHandle xMotorPWMQ1;
-static xQueueHandle xMotorPWMQ2;
-
-static xSemaphoreHandle xWaitData;
+xSemaphoreHandle xWaitData;
 
 void PWMFault_IRQHandler( void)
 {
 	//error
+}
+
+void InitADC( void)
+{
+	//  ADC
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC0);
+
+	ADCHardwareOversampleConfigure(ADC0_BASE, 64);
+
+	ADCSequenceDisable(ADC0_BASE, 0);
+	ADCSequenceConfigure(ADC0_BASE,0, ADC_TRIGGER_PROCESSOR, 0);
+	ADCSequenceStepConfigure(ADC0_BASE,0,0,(ADC_CTL_CH0));
+	ADCSequenceStepConfigure(ADC0_BASE,0,1,(ADC_CTL_CH1));
+	ADCSequenceStepConfigure(ADC0_BASE,0,2,(ADC_CTL_CH2|ADC_CTL_END|ADC_CTL_IE));
+	ADCSequenceEnable(ADC0_BASE,0);
+	//ADCIntEnable(ADC0_BASE,0);
+	//IntEnable(INT_ADC0SS0);
+	//IntMasterEnable();
+
+	ADCProcessorTrigger(ADC0_BASE, 0);
+
+}
+
+long MeasureADC( void)
+{
+	unsigned long adcval[3];
+	long count;
+
+	while(!ADCIntStatus(ADC0_BASE, 0, false)){};
+
+	count = ADCSequenceDataGet(ADC0_BASE,0,&adcval[0]);
+	ADCProcessorTrigger(ADC0_BASE, 0);
+
+	myDrive.mot1.current_total += myDrive.mot1.current_act = (short) adcval[0];
+	myDrive.mot2.current_total += myDrive.mot2.current_act = (short) adcval[1];
+	myDrive.mot1.reg.batt_voltage = myDrive.mot2.reg.batt_voltage = (short) adcval[2];
+
+	return count;
+}
+
+
+signed portBASE_TYPE MotorControlInit( unsigned portBASE_TYPE priority)
+{
+	//Bridges GPIO init
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA|SYSCTL_PERIPH_GPIOB|SYSCTL_PERIPH_GPIOD|SYSCTL_PERIPH_GPIOE|SYSCTL_PERIPH_GPIOF|SYSCTL_PERIPH_GPIOG);
+
+	//*********** PWM
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_PWM);
+
+	// Configure pins as PWM outs
+	GPIOPinTypePWM(BRIDGE0_IN1_PORT,BRIDGE0_IN1);
+	GPIOPinTypePWM(BRIDGE0_IN2_PORT,BRIDGE0_IN2);
+
+	GPIOPinTypePWM(BRIDGE1_IN1_PORT,BRIDGE1_IN1);
+	GPIOPinTypePWM(BRIDGE1_IN2_PORT,BRIDGE1_IN2);
+
+	//konfigurace generátorù - možnosti úprav synchronizace (PWM_GEN_MODE_SYNC | PWM_GEN_MODE_GEN_SYNC_GLOBAL | PWM_GEN_MODE_GEN_SYNC_LOCAL)
+	PWMGenConfigure(PWM_BASE, PWM_GEN_0, PWM_GEN_MODE_DOWN | PWM_GEN_MODE_NO_SYNC );
+	PWMGenConfigure(PWM_BASE, PWM_GEN_1, PWM_GEN_MODE_DOWN | PWM_GEN_MODE_NO_SYNC );
+
+	// period init
+	PWMGenPeriodSet(PWM_BASE, PWM_GEN_0, MOTOR_PWM_PERIOD);
+	PWMGenPeriodSet(PWM_BASE, PWM_GEN_1, MOTOR_PWM_PERIOD);
+
+	// widths init
+	PWMPulseWidthSet(PWM_BASE, PWM_OUT_0, MOTOR_PWM_PERIOD/10);
+	PWMPulseWidthSet(PWM_BASE, PWM_OUT_1, MOTOR_PWM_PERIOD/10);
+
+	PWMPulseWidthSet(PWM_BASE, PWM_OUT_2, MOTOR_PWM_PERIOD/10);
+	PWMPulseWidthSet(PWM_BASE, PWM_OUT_3, MOTOR_PWM_PERIOD/10);
+
+	// this enables generators
+	PWMGenEnable(PWM_BASE, PWM_GEN_0);
+	PWMGenEnable(PWM_BASE, PWM_GEN_1);
+
+	// output matrix
+	PWMOutputState(PWM_BASE, PWM_OUT_0_BIT | PWM_OUT_1_BIT | PWM_OUT_2_BIT | PWM_OUT_3_BIT, false);// dopøedu
+	//PWMOutputState(PWM_BASE, PWM_OUT_1_BIT | PWM_OUT_2_BIT, true);// dopøedu
+	//PWMOutputState(PWM_BASE, PWM_OUT_0_BIT | PWM_OUT_3_BIT, true);// dopøedu
+	//PWMOutputState(PWM_BASE, PWM_OUT_1_BIT | PWM_OUT_2_BIT, false);
+
+	//intver selected
+	//PWMOutputInvert(PWM_BASE, (PWM_OUT_0_BIT | PWM_OUT_1_BIT ), true);
+
+	// enable output
+	GPIOPinTypeGPIOOutput( MOTOR_SHIFTER_OE_PORT, MOTOR_SHIFTER_OE);
+	GPIOPinWrite(MOTOR_SHIFTER_OE_PORT,MOTOR_SHIFTER_OE,(unsigned char)~MOTOR_SHIFTER_OE);
+
+	//enable bridge 0
+	GPIOPinTypeGPIOOutput(BRIDGE0_EN_PORT,BRIDGE0_EN);
+	GPIOPinWrite(BRIDGE0_EN_PORT,BRIDGE0_EN, BRIDGE0_EN);
+
+	//enable bridge 1
+	GPIOPinTypeGPIOOutput(BRIDGE1_EN_PORT,BRIDGE1_EN);
+	GPIOPinWrite(BRIDGE1_EN_PORT, BRIDGE1_EN, BRIDGE1_EN);
+
+	//************* QEI
+	// Povolení hodin periferiím
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC|SYSCTL_PERIPH_GPIOE);
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_QEI0|SYSCTL_PERIPH_QEI1);
+
+	// Configure pins as QEI inputs
+	GPIOPinTypeQEI(QEI0_PORT, QEI0_PHA);
+	GPIOPinTypeQEI(QEI0_PORT, QEI0_PHB);
+	GPIOPinTypeQEI(QEI1_PORT, QEI1_PHA);
+	GPIOPinTypeQEI(QEI1_PORT, QEI1_PHB);
+
+	// QEI configuration - možno upravit update obou hran pro vyšší rozlišení a taky  QEI_CONFIG_SWAP
+	QEIConfigure(QEI0_BASE, QEI_CONFIG_CAPTURE_A_B|QEI_CONFIG_NO_RESET|QEI_CONFIG_QUADRATURE|QEI_CONFIG_NO_SWAP, 511);
+	QEIConfigure(QEI1_BASE, QEI_CONFIG_CAPTURE_A_B|QEI_CONFIG_NO_RESET|QEI_CONFIG_QUADRATURE|QEI_CONFIG_NO_SWAP, 511);
+
+	QEIVelocityConfigure(QEI0_BASE,QEI_VELDIV_1,SPEED_REG_PERIOD);
+	QEIVelocityEnable(QEI0_BASE);
+	QEIVelocityConfigure(QEI1_BASE,QEI_VELDIV_1,SPEED_REG_PERIOD);
+	QEIVelocityEnable(QEI1_BASE);
+
+	//
+	QEIIntEnable(QEI0_BASE,QEI_INTTIMER);// pøerušení od èasovaèe
+	QEIIntEnable(QEI1_BASE,QEI_INTTIMER); // QEI_INTDIR|QEI_INTERROR
+
+	QEIEnable(QEI0_BASE);
+	QEIEnable(QEI1_BASE);
+
+	IntPrioritySet(INT_QEI0,(5<<5)); // nastavit QEI0 vyšší prioritu s ohledem na MAX_INPERRUPT PRIO
+	IntPrioritySet(INT_QEI1,(6<<5));
+	IntEnable(INT_QEI0);
+	IntEnable(INT_QEI1);
+
+	/*
+	// ************ ADC seq 0//enable triger for ADC
+	PWMGenIntTrigEnable(PWM_BASE,PWM_GEN_0,(PWM_TR_CNT_LOAD));
+
+	//PWMIntEnable(PWM_BASE, PWM_INT_GEN_0);
+	//IntEnable(INT_PWM0);*/
+
+	myDrive.mot2.reg.desired = myDrive.mot1.reg.desired = 0;
+	myDrive.mot2.reg.K = myDrive.mot1.reg.K = 0.9;
+	myDrive.mot2.reg.Ti = myDrive.mot1.reg.Ti = 0.2;
+	myDrive.mot2.reg.Kip = myDrive.mot1.reg.Kip = 0.5;
+	myDrive.mot2.reg.limit = myDrive.mot1.reg.limit = MOTOR_PWM_PERIOD;
+
+	InitADC();
+
+	// vytvoøíme fronty pro senzory a aktory
+	xSpeedActQ  = xQueueCreate( 2, ( unsigned portBASE_TYPE ) sizeof( struct SensorActor) );
+	xMotorPWMQ1 = xQueueCreate( 1, ( unsigned portBASE_TYPE ) sizeof( short) );
+	xMotorPWMQ2 = xQueueCreate( 1, ( unsigned portBASE_TYPE ) sizeof( short) );
+
+	//
+	short pwm = 0;
+	if (xQueueSend(xMotorPWMQ1, &pwm, 10) != pdTRUE)
+	{
+
+	}
+	if (xQueueSend(xMotorPWMQ2, &pwm, 10) != pdTRUE)
+	{
+
+	}
+
+	vSemaphoreCreateBinary( xWaitData );
+	if( xWaitData == NULL )
+	{
+
+	}
+	MotorControlSetState(MOTOR_RUNNING);
+
+	return xTaskCreate(MotorControl_task, (signed portCHAR *) "MOTOR", 256, NULL, priority , NULL);
+}
+
+void MotorControlSetState( enum MotorState st)
+{
+	switch (st)
+	{
+	case MOTOR_RUNNING:
+		GPIOPinTypeGPIOOutput( MOTOR_SHIFTER_OE_PORT, MOTOR_SHIFTER_OE);
+		GPIOPinWrite(MOTOR_SHIFTER_OE_PORT,MOTOR_SHIFTER_OE,(unsigned char)~MOTOR_SHIFTER_OE);
+		myDrive.state = st;
+		break;
+	case MOTOR_MANUAL:
+		GPIOPinTypeGPIOOutput( MOTOR_SHIFTER_OE_PORT, MOTOR_SHIFTER_OE);
+		GPIOPinWrite(MOTOR_SHIFTER_OE_PORT,MOTOR_SHIFTER_OE,(unsigned char)~MOTOR_SHIFTER_OE);
+		myDrive.state = st;
+		break;
+	case MOTOR_STOP:
+		GPIOPinTypeGPIOOutput( MOTOR_SHIFTER_OE_PORT, MOTOR_SHIFTER_OE);
+		GPIOPinWrite(MOTOR_SHIFTER_OE_PORT,MOTOR_SHIFTER_OE,(unsigned char)~MOTOR_SHIFTER_OE);
+		myDrive.mot1.reg.desired = 0;
+		myDrive.mot2.reg.desired = 0;
+		myDrive.state = st;
+		break;
+	default:
+		//state out of range - do nothing or MOTOR_FAILURE???
+		break;
+	case MOTOR_FAILURE:
+	case MOTOR_SHUTDOWN:
+		GPIOPinTypeGPIOOutput( MOTOR_SHIFTER_OE_PORT, MOTOR_SHIFTER_OE);
+		GPIOPinWrite(MOTOR_SHIFTER_OE_PORT,MOTOR_SHIFTER_OE,(unsigned char)MOTOR_SHIFTER_OE);
+		myDrive.mot1.reg.desired = 0;
+		myDrive.mot2.reg.desired = 0;
+		myDrive.state = st;
+		break;
+	}
+}
+
+signed portBASE_TYPE MotorControlWaitData(portTickType timeout)
+{
+	return xSemaphoreTake( xWaitData, timeout );
+	// See if we can obtain the semaphore. If the semaphore is not available
+	// wait 10 ticks to see if it becomes free.
+	//if( xSemaphoreTake( xSemaphore, ( portTickType ) 10 ) == pdTRUE )
+	//{
+	// We were able to obtain the semaphore and can now access the
+	// shared resource.
+	// ...
+}
+
+void MotorControlSetSpeed(signed short v1, signed short v2)
+{
+	// saturation??
+	//we only transfer input paramtrs into regulator structure
+	myDrive.mot1.reg.desired = v1;
+	myDrive.mot2.reg.desired = v2;
+}
+
+/*void MotorControlSetManualValue(signed short m1, signed short m2)
+{
+	// saturation??
+	//we only transfer input paramtrs into regulator structure
+	myDrive.mot1.reg.desired = m1;
+	myDrive.mot2.reg.desired = m2;
+}*/
+
+
+enum MotorState MotorControlGetState( void)
+{
+	// we only return actual state
+	return myDrive.state;
+}
+
+
+void MotorControl_task( void * param)
+{
+	struct SensorActor speed;
+	short pwm = 0;
+	char lastMotor = 0;
+
+	// dummy delay
+	vTaskDelay(100);
+
+	while(1)
+	{
+		if( xQueueReceive(xSpeedActQ, &speed, 100) == pdTRUE )
+		{
+			lastMotor = speed.id;
+
+			if (lastMotor == MOTOR_1)
+			{
+				switch (myDrive.state)
+				{
+				case MOTOR_RUNNING:
+					pwm = SpeedReg(&myDrive.mot1.reg, speed.value);
+					break;
+				case MOTOR_MANUAL:
+					pwm = myDrive.mot1.reg.desired;
+					break;
+				case MOTOR_FAILURE:
+				case MOTOR_STOP:
+				case MOTOR_SHUTDOWN:
+				default://error
+					pwm = 0;
+					break;
+				}
+
+				if (xQueueSend(xMotorPWMQ1, &pwm, 10) != pdTRUE)
+				{
+					MotorControlSetState(MOTOR_FAILURE);
+					SetError(ERROR_MOTOR);
+				}
+			}
+			else if (lastMotor == MOTOR_2)
+			{
+				switch (myDrive.state)
+				{
+				case MOTOR_RUNNING:
+					pwm = SpeedReg(&myDrive.mot2.reg, speed.value);
+					break;
+				case MOTOR_MANUAL:
+					pwm = myDrive.mot2.reg.desired;
+					break;
+				case MOTOR_FAILURE:
+				case MOTOR_STOP:
+				case MOTOR_SHUTDOWN:
+				default://error
+					pwm = 0;
+					break;
+				}
+
+				if (xQueueSend(xMotorPWMQ2, &pwm, 10) != pdTRUE)
+				{
+					MotorControlSetState(MOTOR_FAILURE);
+					SetError(ERROR_MOTOR);
+				}
+			}
+			else
+			{
+				MotorControlSetState(MOTOR_FAILURE);
+				SetError(ERROR_MOTOR);
+			}
+		}
+		else
+		{
+			MotorControlSetState(MOTOR_FAILURE);
+			SetError(ERROR_MOTOR);
+			//timeout
+			//fatal error
+		}
+
+		if (lastMotor == MOTOR_2)
+		{
+			MeasureADC();
+
+			//! kontrola pøipojení motorù
+
+			//! kontrola Fail statusu H-mostù
+
+			//! kontrola stavu baterie
+			if (myDrive.mot2.reg.batt_voltage < 500)
+			{
+				SetError(ERROR_BATT);
+				MotorControlSetState(MOTOR_SHUTDOWN); // pro snížení spotøeby
+			}
+			else
+				ClearError(ERROR_BATT);// redundantní
+
+			if( xSemaphoreGive( xWaitData ) != pdTRUE )
+			{
+				// We would expect this call to fail because we cannot give
+				// a semaphore without first "taking" it!
+			}
+		}
+	}
+
+	//kontrola funkce  - faulty od driverù, errory encodérù, proudy,  pøipojení motorù(pomìr odchylky a otáèek (jejich prùmìrù))
+
+	//vTaskDelete( NULL );
+
 }
 
 void QEI0_IRQHandler( void)
@@ -235,411 +546,4 @@ void QEI1_IRQHandler( void)
 	vTraceStoreISREnd();
 	portEXIT_CRITICAL();
 #endif
-}
-
-
-void InitADC( void)
-{
-
-//  ADC
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC0);
-
-	ADCHardwareOversampleConfigure(ADC0_BASE, 64);
-
-	ADCSequenceDisable(ADC0_BASE, 0);
-	ADCSequenceConfigure(ADC0_BASE,0, ADC_TRIGGER_PROCESSOR, 0);
-	ADCSequenceStepConfigure(ADC0_BASE,0,0,(ADC_CTL_CH0));
-	ADCSequenceStepConfigure(ADC0_BASE,0,1,(ADC_CTL_CH1));
-	ADCSequenceStepConfigure(ADC0_BASE,0,2,(ADC_CTL_CH2|ADC_CTL_END|ADC_CTL_IE));
-	ADCSequenceEnable(ADC0_BASE,0);
-	//ADCIntEnable(ADC0_BASE,0);
-	//IntEnable(INT_ADC0SS0);
-	//IntMasterEnable();
-
-	ADCProcessorTrigger(ADC0_BASE, 0);
-
-}
-
-long MeasureADC( void)
-{
-	unsigned long adcval[3];
-	long pocet;
-
-	while(!ADCIntStatus(ADC0_BASE, 0, false)){};
-
-	pocet = ADCSequenceDataGet(ADC0_BASE,0,&adcval[0]);
-	ADCProcessorTrigger(ADC0_BASE, 0);
-
-	myDrive.mot1.current_total += myDrive.mot1.current_act = (short) adcval[0];
-	myDrive.mot2.current_total += myDrive.mot2.current_act = (short) adcval[1];
-	myDrive.mot1.reg.batt_voltage = myDrive.mot2.reg.batt_voltage = (short) adcval[2];
-
-	return pocet;
-
-}
-
-
-signed portBASE_TYPE MotorControlInit( unsigned portBASE_TYPE priority)
-{
-	//Bridges GPIO init
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA|SYSCTL_PERIPH_GPIOB|SYSCTL_PERIPH_GPIOD|SYSCTL_PERIPH_GPIOE|SYSCTL_PERIPH_GPIOF|SYSCTL_PERIPH_GPIOG);
-
-	//*********** PWM
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_PWM);
-
-	// Configure pins as PWM outs
-	GPIOPinTypePWM(BRIDGE0_IN1_PORT,BRIDGE0_IN1);
-	GPIOPinTypePWM(BRIDGE0_IN2_PORT,BRIDGE0_IN2);
-
-	GPIOPinTypePWM(BRIDGE1_IN1_PORT,BRIDGE1_IN1);
-	GPIOPinTypePWM(BRIDGE1_IN2_PORT,BRIDGE1_IN2);
-
-	//konfigurace generátorù - možnosti úprav synchronizace (PWM_GEN_MODE_SYNC | PWM_GEN_MODE_GEN_SYNC_GLOBAL | PWM_GEN_MODE_GEN_SYNC_LOCAL)
-	PWMGenConfigure(PWM_BASE, PWM_GEN_0, PWM_GEN_MODE_DOWN | PWM_GEN_MODE_NO_SYNC );
-	PWMGenConfigure(PWM_BASE, PWM_GEN_1, PWM_GEN_MODE_DOWN | PWM_GEN_MODE_NO_SYNC );
-
-	// period init
-	PWMGenPeriodSet(PWM_BASE, PWM_GEN_0, MOTOR_PWM_PERIOD);
-	PWMGenPeriodSet(PWM_BASE, PWM_GEN_1, MOTOR_PWM_PERIOD);
-
-	// widths init
-	PWMPulseWidthSet(PWM_BASE, PWM_OUT_0, MOTOR_PWM_PERIOD/10);
-	PWMPulseWidthSet(PWM_BASE, PWM_OUT_1, MOTOR_PWM_PERIOD/10);
-
-	PWMPulseWidthSet(PWM_BASE, PWM_OUT_2, MOTOR_PWM_PERIOD/10);
-	PWMPulseWidthSet(PWM_BASE, PWM_OUT_3, MOTOR_PWM_PERIOD/10);
-
-	// this enables generators
-	PWMGenEnable(PWM_BASE, PWM_GEN_0);
-	PWMGenEnable(PWM_BASE, PWM_GEN_1);
-
-	// output matrix
-	PWMOutputState(PWM_BASE, PWM_OUT_0_BIT | PWM_OUT_1_BIT | PWM_OUT_2_BIT | PWM_OUT_3_BIT, false);// dopøedu
-	//PWMOutputState(PWM_BASE, PWM_OUT_1_BIT | PWM_OUT_2_BIT, true);// dopøedu
-	//PWMOutputState(PWM_BASE, PWM_OUT_0_BIT | PWM_OUT_3_BIT, true);// dopøedu
-	//PWMOutputState(PWM_BASE, PWM_OUT_1_BIT | PWM_OUT_2_BIT, false);
-
-	//intver selected
-	//PWMOutputInvert(PWM_BASE, (PWM_OUT_0_BIT | PWM_OUT_1_BIT ), true);
-
-
-	// enable output
-	GPIOPinTypeGPIOOutput( MOTOR_SHIFTER_OE_PORT, MOTOR_SHIFTER_OE);
-	GPIOPinWrite(MOTOR_SHIFTER_OE_PORT,MOTOR_SHIFTER_OE,(unsigned char)~MOTOR_SHIFTER_OE);
-
-	//enable bridge 0
-	GPIOPinTypeGPIOOutput(BRIDGE0_EN_PORT,BRIDGE0_EN);
-	GPIOPinWrite(BRIDGE0_EN_PORT,BRIDGE0_EN, BRIDGE0_EN);
-
-	//enable bridge 1
-	GPIOPinTypeGPIOOutput(BRIDGE1_EN_PORT,BRIDGE1_EN);
-	GPIOPinWrite(BRIDGE1_EN_PORT, BRIDGE1_EN, BRIDGE1_EN);
-
-
-	//************* QEI
-	// Povolení hodin periferiím
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC|SYSCTL_PERIPH_GPIOE);
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_QEI0|SYSCTL_PERIPH_QEI1);
-
-
-	// Configure pins as QEI inputs
-	GPIOPinTypeQEI(QEI0_PORT, QEI0_PHA);
-	GPIOPinTypeQEI(QEI0_PORT, QEI0_PHB);
-	GPIOPinTypeQEI(QEI1_PORT, QEI1_PHA);
-	GPIOPinTypeQEI(QEI1_PORT, QEI1_PHB);
-
-	// QEI configuration - možno upravit update obou hran pro vyšší rozlišení a taky  QEI_CONFIG_SWAP
-	QEIConfigure(QEI0_BASE, QEI_CONFIG_CAPTURE_A_B|QEI_CONFIG_NO_RESET|QEI_CONFIG_QUADRATURE|QEI_CONFIG_NO_SWAP, 511);
-	QEIConfigure(QEI1_BASE, QEI_CONFIG_CAPTURE_A_B|QEI_CONFIG_NO_RESET|QEI_CONFIG_QUADRATURE|QEI_CONFIG_NO_SWAP, 511);
-
-	QEIVelocityConfigure(QEI0_BASE,QEI_VELDIV_1,SPEED_REG_PERIOD);
-	QEIVelocityEnable(QEI0_BASE);
-	QEIVelocityConfigure(QEI1_BASE,QEI_VELDIV_1,SPEED_REG_PERIOD);
-	QEIVelocityEnable(QEI1_BASE);
-
-	//
-	QEIIntEnable(QEI0_BASE,QEI_INTTIMER);// pøerušení od èasovaèe
-	QEIIntEnable(QEI1_BASE,QEI_INTTIMER); // QEI_INTDIR|QEI_INTERROR
-
-	QEIEnable(QEI0_BASE);
-	QEIEnable(QEI1_BASE);
-
-	IntPrioritySet(INT_QEI0,(5<<5)); // nastavit QEI0 vyšší prioritu s ohledem na MAX_INPERRUPT PRIO
-	IntPrioritySet(INT_QEI1,(6<<5));
-	IntEnable(INT_QEI0);
-	IntEnable(INT_QEI1);
-
-	/*
-	// ************ ADC seq 0//enable triger for ADC
-	PWMGenIntTrigEnable(PWM_BASE,PWM_GEN_0,(PWM_TR_CNT_LOAD));
-
-	//PWMIntEnable(PWM_BASE, PWM_INT_GEN_0);
-	//IntEnable(INT_PWM0);*/
-
-	myDrive.mot2.reg.desired = myDrive.mot1.reg.desired = 0;
-	myDrive.mot2.reg.K = myDrive.mot1.reg.K = 0.9;
-	myDrive.mot2.reg.Ti = myDrive.mot1.reg.Ti = 0.2;
-
-	InitADC();
-
-	// vytvoøíme fronty pro senzory a aktory
-	xSpeedActQ  = xQueueCreate( 2, ( unsigned portBASE_TYPE ) sizeof( struct SensorActor) );
-	xMotorPWMQ1 = xQueueCreate( 1, ( unsigned portBASE_TYPE ) sizeof( short) );
-	xMotorPWMQ2 = xQueueCreate( 1, ( unsigned portBASE_TYPE ) sizeof( short) );
-
-	short pwm = 0;
-
-	if (xQueueSend(xMotorPWMQ1, &pwm, 10) != pdTRUE)
-	{
-
-	}
-	if (xQueueSend(xMotorPWMQ2, &pwm, 10) != pdTRUE)
-	{
-
-	}
-
-	//
-	vSemaphoreCreateBinary( xWaitData );
-	if( xWaitData == NULL )
-	{
-
-	}
-
-	MotorControlSetState(MOTOR_RUNNING);
-
-	return xTaskCreate(MotorControl_task, (signed portCHAR *) "MOTOR", 256, NULL, priority , NULL);
-
-}
-
-void MotorControlSetState( enum MotorState st)
-{
-	switch (st)
-	{
-	case MOTOR_RUNNING:
-		GPIOPinTypeGPIOOutput( MOTOR_SHIFTER_OE_PORT, MOTOR_SHIFTER_OE);
-		GPIOPinWrite(MOTOR_SHIFTER_OE_PORT,MOTOR_SHIFTER_OE,(unsigned char)~MOTOR_SHIFTER_OE);
-		myDrive.state = st;
-		break;
-	case MOTOR_MANUAL:
-		GPIOPinTypeGPIOOutput( MOTOR_SHIFTER_OE_PORT, MOTOR_SHIFTER_OE);
-		GPIOPinWrite(MOTOR_SHIFTER_OE_PORT,MOTOR_SHIFTER_OE,(unsigned char)~MOTOR_SHIFTER_OE);
-		myDrive.state = st;
-		break;
-	case MOTOR_STOP:
-		GPIOPinTypeGPIOOutput( MOTOR_SHIFTER_OE_PORT, MOTOR_SHIFTER_OE);
-		GPIOPinWrite(MOTOR_SHIFTER_OE_PORT,MOTOR_SHIFTER_OE,(unsigned char)~MOTOR_SHIFTER_OE);
-		myDrive.mot1.reg.desired = 0;
-		myDrive.mot2.reg.desired = 0;
-		myDrive.state = st;
-		break;
-	case MOTOR_SHUTDOWN:
-		GPIOPinTypeGPIOOutput( MOTOR_SHIFTER_OE_PORT, MOTOR_SHIFTER_OE);
-		GPIOPinWrite(MOTOR_SHIFTER_OE_PORT,MOTOR_SHIFTER_OE,(unsigned char)MOTOR_SHIFTER_OE);
-		myDrive.mot1.reg.desired = 0;
-		myDrive.mot2.reg.desired = 0;
-		myDrive.state = st;
-		break;
-	default:
-		//error?
-		break;
-	}
-}
-
-signed portBASE_TYPE MotorControlWaitData(portTickType timeout)
-{
-	return xSemaphoreTake( xWaitData, timeout );
-			// See if we can obtain the semaphore. If the semaphore is not available
-			// wait 10 ticks to see if it becomes free.
-			//if( xSemaphoreTake( xSemaphore, ( portTickType ) 10 ) == pdTRUE )
-			//{
-			// We were able to obtain the semaphore and can now access the
-			// shared resource.
-			// ...
-}
-
-void MotorControlSetSpeed(signed short v1, signed short v2)
-{
-	myDrive.mot1.reg.desired = v1;
-	myDrive.mot2.reg.desired = v2;
-}
-
-
-
-enum MotorState MotorControlGetState( void)
-{
-	return myDrive.state;
-}
-
-short SpeedReg(struct RegulatorParams * rp, short measurement)
-{
-	double vystup;
-
-	rp->error = rp->desired - measurement;
-	vystup = rp->sum + (rp->K*rp->error);
-	rp->sum += rp->K * rp->Ti * rp->error;
-
-	//omezení integraèní složky
-	if (rp->sum  > SUM_LIMIT)
-		rp->sum  = SUM_LIMIT;
-	if (rp->sum  < -SUM_LIMIT)
-		rp->sum  = -SUM_LIMIT;
-
-
-	//uprava výstupu podle napájecího napìtí
-	vystup = vystup * 538.0 / rp->batt_voltage;
-
-	if (vystup >  MOTOR_PWM_PERIOD)
-		vystup =  MOTOR_PWM_PERIOD;
-	if (vystup < -MOTOR_PWM_PERIOD)
-		vystup = -MOTOR_PWM_PERIOD;
-
-	return (short) vystup;
-}
-
-//jednotka ruèního ovládání  - jak imolementovat
-
-short regvalues[6];
-void MotorControl_task( void * param)
-{
-	struct SensorActor speed;
-	short pwm = 0;
-	char lastMotor = 0;
-
-	// Initialization code - create the channel label for a VTracePrintF
-	//traceLabel adc_user_event_channel1 = xTraceOpenLabel("ot1");
-
-	//inicialzace HW
-
-	vTaskDelay(100);
-
-	while(1)
-	{
-		if( xQueueReceive(xSpeedActQ, &speed, 100) == pdTRUE )
-		{
-			lastMotor = speed.id;
-
-			if (lastMotor == MOTOR_1)
-			{
-				regvalues[0] = speed.value;
-
-				switch (myDrive.state)
-				{
-				case MOTOR_RUNNING:
-					pwm = SpeedReg(&myDrive.mot1.reg, speed.value);
-					break;
-				case MOTOR_MANUAL:
-					pwm = myDrive.mot1.reg.desired;
-					break;
-				case MOTOR_FAILURE:
-				case MOTOR_STOP:
-				case MOTOR_SHUTDOWN:
-				default://error
-					pwm = 0;
-					break;
-				}
-
-				regvalues[2] = pwm;
-				regvalues[4] = myDrive.mot1.reg.error;
-				if (xQueueSend(xMotorPWMQ1, &pwm, 10) != pdTRUE)
-				{
-					MotorControlSetState(MOTOR_FAILURE);
-					SetError(ERROR_MOTOR);
-				}
-			}
-			else if (lastMotor == MOTOR_2)
-			{
-				regvalues[1] = speed.value;
-
-				switch (myDrive.state)
-				{
-				case MOTOR_RUNNING:
-					pwm = SpeedReg(&myDrive.mot2.reg, speed.value);
-					break;
-				case MOTOR_MANUAL:
-					pwm = myDrive.mot2.reg.desired;
-					break;
-				case MOTOR_FAILURE:
-				case MOTOR_STOP:
-				case MOTOR_SHUTDOWN:
-				default://error
-					pwm = 0;
-					break;
-				}
-
-				regvalues[3] = pwm;
-				regvalues[5] = myDrive.mot2.reg.error;
-				if (xQueueSend(xMotorPWMQ2, &pwm, 10) != pdTRUE)
-				{
-					MotorControlSetState(MOTOR_FAILURE);
-					SetError(ERROR_MOTOR);
-				}
-			}
-			else
-			{
-				MotorControlSetState(MOTOR_FAILURE);
-				SetError(ERROR_MOTOR);
-			}
-		}
-		else
-		{
-			MotorControlSetState(MOTOR_FAILURE);
-			SetError(ERROR_MOTOR);
-			//timeout
-			//fatal error
-		}
-
-		if (lastMotor == MOTOR_2)
-		{
-			unsigned short values[3];
-			char timestamp = 1;
-			MeasureADC();
-
-			//èasová znaèka
-			SlipSend(ID_TIME_STAMP,(char *) &timestamp, sizeof(char));
-
-			//data regulátorù
-			SlipSend(ID_REG,(char *) &regvalues, sizeof(short[6]));
-
-			values[0] = myDrive.mot1.current_act;
-			values[1] = myDrive.mot2.current_act;
-			values[2] = myDrive.mot2.reg.batt_voltage;
-
-			//data ADC mìøení
-			SlipSend(ID_ADC,(char *) &values, sizeof(unsigned short[3]));
-
-			SlipSend(ID_MOTOR_MODE, (char *) &myDrive.state, sizeof(enum MotorState) );
-
-			//! kontrola pøipojení motorù
-
-			//! kontrola Fail statusu H-mostù
-
-			//! kontrola stavu baterie
-			if (myDrive.mot2.reg.batt_voltage < 500)
-			{
-				SetError(ERROR_BATT);
-				MotorControlSetState(MOTOR_SHUTDOWN); // pro maximální snížení spotøeby
-			}
-			else
-				ClearError(ERROR_BATT);// dost možná redundantní
-
-			/*
-			 * if( xSemaphoreGive( xSemaphore ) != pdTRUE )
-{
-// We would expect this call to fail because we cannot give
-// a semaphore without first "taking" it!
-}
-			 * */
-
-
-		}
-
-		// An advanced user event, at the relevant code location
-		//vTracePrintF(adc_user_event_channel1, "otacky 1: %d", speeds[0]);
-
-	}
-
-	//kontrola funkce  - faulty od driverù, errory encodérù, proudy,  pøipojení motorù(pomìr odchylky a otáèek (jejich prùmìrù))
-
-	//vTaskDelete( NULL );
-
 }
