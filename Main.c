@@ -20,6 +20,7 @@
 #include "Motorcontrol.h"
 #include "SlipSerial.h"
 #include "CANtest.h"
+#include "SimpleMatrix.h"
 
 
 void vSystemInit( void)
@@ -67,8 +68,8 @@ void SlipSerialProcessPacket(char packet_buffer[], int length)
 		}
 		else
 		{
-			memcpy(&myDrive.mot1.reg.K,&packet_buffer[1],20);
-			memcpy(&myDrive.mot2.reg.K,&packet_buffer[1],20);
+			memcpy(&myDrive.mot1.reg.Kr,&packet_buffer[1],20);
+			memcpy(&myDrive.mot2.reg.Kr,&packet_buffer[1],20);
 		}
 		break;
 	}
@@ -86,6 +87,11 @@ void ControlTask_task( void * param)
 #if configUSE_TRACE_FACILITY==1
 	short taskListPre = 100;
 #endif
+	rlseType ident1;
+	rlseType ident2;
+
+	rmnc_init(&ident1);
+	rmnc_init(&ident2);
 
 	while(1)
 	{
@@ -94,6 +100,7 @@ void ControlTask_task( void * param)
 			short regvalues[6];
 			unsigned short values[3];
 			char timestamp = 1;
+			//unsigned char temp;
 
 			//acc values
 			SlipSend(ID_ACC_STRUCT,(char *) &accData,2*sizeof(short int));
@@ -103,10 +110,10 @@ void ControlTask_task( void * param)
 			}
 
 			//regulator values
-			regvalues[0] = myDrive.mot1.reg.actual;
+			regvalues[0] = myDrive.mot1.reg.measured;
 			regvalues[2] = myDrive.mot1.reg.action;
 			regvalues[4] = myDrive.mot1.reg.error;
-			regvalues[1] = myDrive.mot2.reg.actual;
+			regvalues[1] = myDrive.mot2.reg.measured;
 			regvalues[3] = myDrive.mot2.reg.action;
 			regvalues[5] = myDrive.mot2.reg.error;
 
@@ -121,8 +128,31 @@ void ControlTask_task( void * param)
 
 			SlipSend(ID_MOTOR_MODE, (char *) &myDrive.state, sizeof(enum MotorState) );
 
+			SlipSend(ID_IDENT_PARAMS, (char *) &ident1.th->mat[0], 4*sizeof(float));
+			SlipSend(ID_IDENT_PARAMS2, (char *) &ident2.th->mat[0], 4*sizeof(float));
+
 			//timestamp
 			SlipSend(ID_TIME_STAMP,(char *) &timestamp, sizeof(char));
+
+
+	/*		if (regvalues[3] > 10)
+			{
+				temp = 1;
+			}else
+			{
+				if (regvalues[3] < -10)
+				{
+					temp = 1;
+				}
+				else
+				{
+					temp = 0;
+				}
+
+			}*/
+			rmnc_update(&ident1, (float) regvalues[0],(float) regvalues[2], (regvalues[0]!= 0));
+			rmnc_update(&ident2, (float) regvalues[1],(float) regvalues[3], (regvalues[1]!= 0));
+
 		}
 		else
 		{
@@ -149,7 +179,7 @@ void ControlTask_task( void * param)
 signed portBASE_TYPE ControlTaskInit( unsigned portBASE_TYPE priority )
 {
 	// we only create control task
-	return xTaskCreate(ControlTask_task, (signed portCHAR *) "CTRL", 256, NULL, priority , NULL);
+	return xTaskCreate(ControlTask_task, (signed portCHAR *) "CTRL", 512, NULL, priority , NULL);
 }
 
 
@@ -158,6 +188,8 @@ int main(void)
 {
 	//! inicializace základních periferií systému
 	vSystemInit();
+
+
 
 	//! HeartBeat úloha indikaèní diody
 	if (StatusLEDInit(tskIDLE_PRIORITY+1) != pdPASS)

@@ -14,9 +14,10 @@
 #include "Regulator.h"
 #include "FreeRTOS.h"
 
-#define MOTOR_PWM_PERIOD		(4000) //4000 pro 20 MHz 5 kHz //4000 pro 40MHz a 10kHz
-#define SPEED_REG_PERIOD		((20000000/50)-1) //pøednastavení QEI èasovaèe pro periodu 20ms (50Hz)
+#define MOTOR_PWM_FREQ		(5000) //4000 pro 20 MHz 5 kHz //4000 pro 40MHz a 10kHz
+#define SPEED_REG_FREQ		(50)   //pøednastavení QEI èasovaèe pro periodu 20ms (50Hz)
 
+//#define BIPOLAR_PWM_CONTROL
 
 /*! \brief Available states of MotorControl module
  * \ingroup MotorControl */

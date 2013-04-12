@@ -18,7 +18,6 @@
 
 #include <math.h>
 
-
 #include "MotorControl.h"
 #include "Regulator.h"
 #include "StatusLED.h"
@@ -73,8 +72,15 @@ long MeasureADC( void)
 }
 
 
-signed portBASE_TYPE MotorControlInit( unsigned portBASE_TYPE priority)
+signed long MotorControlInit( unsigned long priority)
 {
+	// variables
+	unsigned long pwm_period;
+	unsigned long qei_period;
+
+	pwm_period = SysCtlClockGet()/MOTOR_PWM_FREQ;
+	qei_period = (SysCtlClockGet()/SPEED_REG_FREQ)-1;
+
 	//Bridges GPIO init
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA|SYSCTL_PERIPH_GPIOB|SYSCTL_PERIPH_GPIOD|SYSCTL_PERIPH_GPIOE|SYSCTL_PERIPH_GPIOF|SYSCTL_PERIPH_GPIOG);
 
@@ -88,32 +94,35 @@ signed portBASE_TYPE MotorControlInit( unsigned portBASE_TYPE priority)
 	GPIOPinTypePWM(BRIDGE1_IN1_PORT,BRIDGE1_IN1);
 	GPIOPinTypePWM(BRIDGE1_IN2_PORT,BRIDGE1_IN2);
 
+#ifdef BIPOLAR_PWM_CONTROL
+
+#else
 	//konfigurace generátorù - možnosti úprav synchronizace (PWM_GEN_MODE_SYNC | PWM_GEN_MODE_GEN_SYNC_GLOBAL | PWM_GEN_MODE_GEN_SYNC_LOCAL)
 	PWMGenConfigure(PWM_BASE, PWM_GEN_0, PWM_GEN_MODE_DOWN | PWM_GEN_MODE_NO_SYNC );
 	PWMGenConfigure(PWM_BASE, PWM_GEN_1, PWM_GEN_MODE_DOWN | PWM_GEN_MODE_NO_SYNC );
 
-	// period init
-	PWMGenPeriodSet(PWM_BASE, PWM_GEN_0, MOTOR_PWM_PERIOD);
-	PWMGenPeriodSet(PWM_BASE, PWM_GEN_1, MOTOR_PWM_PERIOD);
+	PWMGenPeriodSet(PWM_BASE, PWM_GEN_0, pwm_period);
+	PWMGenPeriodSet(PWM_BASE, PWM_GEN_1, pwm_period);
 
 	// widths init
-	PWMPulseWidthSet(PWM_BASE, PWM_OUT_0, MOTOR_PWM_PERIOD/10);
-	PWMPulseWidthSet(PWM_BASE, PWM_OUT_1, MOTOR_PWM_PERIOD/10);
+	PWMPulseWidthSet(PWM_BASE, PWM_OUT_0, 1);
+	PWMPulseWidthSet(PWM_BASE, PWM_OUT_1, 1);
 
-	PWMPulseWidthSet(PWM_BASE, PWM_OUT_2, MOTOR_PWM_PERIOD/10);
-	PWMPulseWidthSet(PWM_BASE, PWM_OUT_3, MOTOR_PWM_PERIOD/10);
+	PWMPulseWidthSet(PWM_BASE, PWM_OUT_2, 1);
+	PWMPulseWidthSet(PWM_BASE, PWM_OUT_3, 1);
 
 	// this enables generators
 	PWMGenEnable(PWM_BASE, PWM_GEN_0);
 	PWMGenEnable(PWM_BASE, PWM_GEN_1);
+#endif
 
 	// output matrix
-	PWMOutputState(PWM_BASE, PWM_OUT_0_BIT | PWM_OUT_1_BIT | PWM_OUT_2_BIT | PWM_OUT_3_BIT, false);// dopøedu
+	//PWMOutputState(PWM_BASE, PWM_OUT_0_BIT | PWM_OUT_1_BIT | PWM_OUT_2_BIT | PWM_OUT_3_BIT, false);// dopøedu
 	//PWMOutputState(PWM_BASE, PWM_OUT_1_BIT | PWM_OUT_2_BIT, true);// dopøedu
 	//PWMOutputState(PWM_BASE, PWM_OUT_0_BIT | PWM_OUT_3_BIT, true);// dopøedu
 	//PWMOutputState(PWM_BASE, PWM_OUT_1_BIT | PWM_OUT_2_BIT, false);
 
-	//intver selected
+	// inverted output select
 	//PWMOutputInvert(PWM_BASE, (PWM_OUT_0_BIT | PWM_OUT_1_BIT ), true);
 
 	// enable output
@@ -143,9 +152,9 @@ signed portBASE_TYPE MotorControlInit( unsigned portBASE_TYPE priority)
 	QEIConfigure(QEI0_BASE, QEI_CONFIG_CAPTURE_A_B|QEI_CONFIG_NO_RESET|QEI_CONFIG_QUADRATURE|QEI_CONFIG_NO_SWAP, 511);
 	QEIConfigure(QEI1_BASE, QEI_CONFIG_CAPTURE_A_B|QEI_CONFIG_NO_RESET|QEI_CONFIG_QUADRATURE|QEI_CONFIG_NO_SWAP, 511);
 
-	QEIVelocityConfigure(QEI0_BASE,QEI_VELDIV_1,SPEED_REG_PERIOD);
+	QEIVelocityConfigure(QEI0_BASE,QEI_VELDIV_1,qei_period);
 	QEIVelocityEnable(QEI0_BASE);
-	QEIVelocityConfigure(QEI1_BASE,QEI_VELDIV_1,SPEED_REG_PERIOD);
+	QEIVelocityConfigure(QEI1_BASE,QEI_VELDIV_1,qei_period);
 	QEIVelocityEnable(QEI1_BASE);
 
 	//
@@ -160,18 +169,14 @@ signed portBASE_TYPE MotorControlInit( unsigned portBASE_TYPE priority)
 	IntEnable(INT_QEI0);
 	IntEnable(INT_QEI1);
 
-	/*
-	// ************ ADC seq 0//enable triger for ADC
-	PWMGenIntTrigEnable(PWM_BASE,PWM_GEN_0,(PWM_TR_CNT_LOAD));
-
-	//PWMIntEnable(PWM_BASE, PWM_INT_GEN_0);
-	//IntEnable(INT_PWM0);*/
-
 	myDrive.mot2.reg.desired = myDrive.mot1.reg.desired = 0;
-	myDrive.mot2.reg.K = myDrive.mot1.reg.K = 0.9;
+	myDrive.mot2.reg.Kr = myDrive.mot1.reg.Kr = 0.9;
 	myDrive.mot2.reg.Ti = myDrive.mot1.reg.Ti = 0.2;
+	myDrive.mot2.reg.Td = myDrive.mot1.reg.Td = 0.1;
+	myDrive.mot2.reg.Beta = myDrive.mot1.reg.Beta = 1;
 	myDrive.mot2.reg.Kip = myDrive.mot1.reg.Kip = 0.5;
-	myDrive.mot2.reg.limit = myDrive.mot1.reg.limit = MOTOR_PWM_PERIOD;
+	myDrive.mot2.reg.limit = myDrive.mot1.reg.limit = pwm_period;
+
 
 	InitADC();
 
@@ -292,10 +297,11 @@ void MotorControl_task( void * param)
 				switch (myDrive.state)
 				{
 				case MOTOR_RUNNING:
-					pwm = SpeedReg(&myDrive.mot1.reg, speed.value);
+					pwm = RegulatorAction(&myDrive.mot1.reg, speed.value);
 					break;
 				case MOTOR_MANUAL:
-					pwm = myDrive.mot1.reg.desired;
+					myDrive.mot1.reg.measured = speed.value;
+					myDrive.mot1.reg.action = pwm = myDrive.mot1.reg.desired;
 					break;
 				case MOTOR_FAILURE:
 				case MOTOR_STOP:
@@ -316,10 +322,11 @@ void MotorControl_task( void * param)
 				switch (myDrive.state)
 				{
 				case MOTOR_RUNNING:
-					pwm = SpeedReg(&myDrive.mot2.reg, speed.value);
+					pwm = RegulatorAction(&myDrive.mot2.reg, speed.value);
 					break;
 				case MOTOR_MANUAL:
-					pwm = myDrive.mot2.reg.desired;
+					myDrive.mot2.reg.measured = speed.value;
+					myDrive.mot2.reg.action = pwm = myDrive.mot2.reg.desired;
 					break;
 				case MOTOR_FAILURE:
 				case MOTOR_STOP:
@@ -361,7 +368,7 @@ void MotorControl_task( void * param)
 			if (myDrive.mot2.reg.batt_voltage < 500)
 			{
 				SetError(ERROR_BATT);
-				MotorControlSetState(MOTOR_SHUTDOWN); // pro snížení spotøeby
+				//MotorControlSetState(MOTOR_SHUTDOWN); // pro snížení spotøeby
 			}
 			else
 				ClearError(ERROR_BATT);// redundantní
@@ -393,7 +400,7 @@ void QEI0_IRQHandler( void)
 	vTraceStoreISRBegin(2);
 	portEXIT_CRITICAL();
 #endif
-
+	//! upravit - pøímo registr s maskou
 	switch( QEIIntStatus(QEI0_BASE, true) )
 	{
 	case QEI_INTERROR:
@@ -405,21 +412,23 @@ void QEI0_IRQHandler( void)
 	case QEI_INTTIMER:
 		portENTER_CRITICAL();
 		{
+			//! pøímo registr
 			speed.value = QEIVelocityGet(QEI0_BASE);
 			//speed.value *= QEIDirectionGet(QEI0_BASE); // alternativa
 			if (QEIDirectionGet(QEI0_BASE) < 0) // backward?
-				speed.value *= -1;
+				speed.value *= -1;//! šlo by jednodušeji?
 
 			speed.id = MOTOR_1;
 		}
 		portEXIT_CRITICAL();
 
-		QEIIntClear(QEI0_BASE, QEI_INTDIR|QEI_INTTIMER|QEI_INTERROR);
+		QEIIntClear(QEI0_BASE, QEI_INTDIR|QEI_INTTIMER|QEI_INTERROR);//!registr
 
 		if( xQueueReceiveFromISR( xMotorPWMQ1, &pwm, &cTaskWoken ) == pdTRUE )
 		{
 			if (pwm == 0) // no signal
 			{
+
 				PWMOutputState(PWM_BASE, PWM_OUT_0_BIT|PWM_OUT_1_BIT, false);
 			}
 			else if (pwm<0) // reverz

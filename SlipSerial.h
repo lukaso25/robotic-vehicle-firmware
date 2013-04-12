@@ -12,7 +12,9 @@ enum SLIP_ID
 	ID_MOTOR_ACT = 0x14,
 	ID_MOTOR_MODE = 0x15,
 	ID_TIME_STAMP = 0x16,
-	ID_REG_PARAMS = 0x17
+	ID_REG_PARAMS = 0x17,
+	ID_IDENT_PARAMS = 0x18,
+	ID_IDENT_PARAMS2 = 0x19,
 };
 /*!
  * \brief Funkce volaná pøi korektním pøijmu packetu
