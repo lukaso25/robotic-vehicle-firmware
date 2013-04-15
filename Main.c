@@ -20,7 +20,7 @@
 #include "Motorcontrol.h"
 #include "SlipSerial.h"
 #include "CANtest.h"
-#include "SimpleMatrix.h"
+#include "RLSE.h"
 
 
 void vSystemInit( void)
@@ -103,8 +103,8 @@ void ControlTask_task( void * param)
 			//unsigned char temp;
 
 			//acc values
-			SlipSend(ID_ACC_STRUCT,(char *) &accData,2*sizeof(short int));
-			if (AccelerometerRequestData() == pdPASS)
+			SlipSend(ID_ACC_STRUCT,(char *) &accData, 2*sizeof(short int));
+			if ( AccelerometerRequestData() == pdPASS)
 			{
 				//OK
 			}
@@ -134,24 +134,8 @@ void ControlTask_task( void * param)
 			//timestamp
 			SlipSend(ID_TIME_STAMP,(char *) &timestamp, sizeof(char));
 
-
-	/*		if (regvalues[3] > 10)
-			{
-				temp = 1;
-			}else
-			{
-				if (regvalues[3] < -10)
-				{
-					temp = 1;
-				}
-				else
-				{
-					temp = 0;
-				}
-
-			}*/
-			rmnc_update(&ident1, (float) regvalues[0],(float) regvalues[2], (regvalues[0]!= 0));
-			rmnc_update(&ident2, (float) regvalues[1],(float) regvalues[3], (regvalues[1]!= 0));
+			rmnc_update( &ident1, (float) regvalues[0],(float) regvalues[2], (regvalues[0]!= 0));
+			rmnc_update( &ident2, (float) regvalues[1],(float) regvalues[3], (regvalues[1]!= 0));
 
 		}
 		else

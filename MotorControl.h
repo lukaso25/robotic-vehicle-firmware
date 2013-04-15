@@ -17,6 +17,8 @@
 #define MOTOR_PWM_FREQ		(5000) //4000 pro 20 MHz 5 kHz //4000 pro 40MHz a 10kHz
 #define SPEED_REG_FREQ		(50)   //pøednastavení QEI èasovaèe pro periodu 20ms (50Hz)
 
+#define HARMONIC_BALANCE_RELAY_LIMIT  (1000)
+
 //#define BIPOLAR_PWM_CONTROL
 
 /*! \brief Available states of MotorControl module
@@ -32,7 +34,9 @@ enum MotorState
 	//! manual control without controller
 	MOTOR_MANUAL = 3,
 	//! something is wrong
-	MOTOR_FAILURE = 4
+	MOTOR_FAILURE = 4,
+	//! Harmonic balance test
+	MOTOR_HARMONIC_BALANCE = 5
 };
 
 /*! \brief Motor identification

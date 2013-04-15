@@ -1,4 +1,9 @@
 
+#ifndef __SIMPLE_MATRIX_H__
+#define __SIMPLE_MATRIX_H__
+
+#include <stdlib.h>
+
 typedef float  matrixValType;
 typedef long matrixSizeType;
 
@@ -13,35 +18,27 @@ typedef struct matrixTypeStruct
 }
 matrixType;
 
+matrixType * matAlloc(matrixSizeType m, matrixSizeType n);
 
-#define RLSE_SYSTEM_PARAMETERS (4)
-#define EXP_FORGETING_COEF (0.99)
+inline void matAdd(matrixType *a, matrixType *b);
 
-typedef struct rlseStruct
-{
-	// ! past values vector
-	matrixValType past_values[RLSE_SYSTEM_PARAMETERS-1];
+inline void matSubstract(matrixType *a, matrixType *b);
 
-	// ! RLS method matrices
-	matrixType* P;
-	matrixType* th;
-	matrixType* K;
-	matrixType* phi;
-}
-rlseType;
+inline void matMul(matrixType *res, matrixType *a, matrixType *b);
 
-enum PAST_VALS_ID
-{
-	Y1 = 0, Y2, U1
-};
+inline void matTranspose(matrixType *res, matrixType *a);
 
-/*
-matrixType* P;
-matrixType* th;
-matrixType* K;
-matrixType* phi;*/
+inline void matScale(matrixType *a, matrixValType scale);
 
-inline void matPrint( matrixType *mt);
-void matTest( void);
-void rmnc_init( rlseType* rlses);
-void rmnc_update( rlseType* rlses, matrixValType y, matrixValType u, matrixSizeType condition);
+inline void matDivConst(matrixType *a, matrixValType value);
+
+inline void matAddConst(matrixType *a, matrixValType value);
+
+inline void matFill(matrixType *res, matrixValType value);
+
+inline void matEye(matrixType* res, matrixValType value);
+
+#endif//__SIMPLE_MATRIX_H__
+
+
+

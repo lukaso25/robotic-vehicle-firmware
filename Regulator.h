@@ -6,7 +6,12 @@
  * \date 2013
  * \defgroup Regulator Regulator module
  *
- * This module contain modification PID algorithm based regulator with structure that hold actual values and parameters.
+ * This module contain modification PID (PSD) algorithm based regulator with structure that hold actual values and parameters.
+ *
+ * There is basic version of PID (PSD) algorithm, that is selected by macro REG_VERSION 1.
+ *
+ * Another version called Beta-PSD structure (from prof. Petr Pivonka course) is selected by macro REG_VERSION 2.
+ *  There are some other parameters N, Beta and Kip, that should be set-up by \function RegulatorSetParam().
  *
  * */
 
@@ -75,13 +80,13 @@ short RegulatorAction(struct RegulatorParams * rp, short measurement);
 
 /*! \brief Function providing setting of PID parameters
  *
- * 	Transfer function of regulator: \f$F_R(s) = K_r (1 + T_D *\frac{s}{1 + \epsilon s} + \frac{1}{T_I*s} )\f$
+ * 	Transfer function of regulator: \f$F_R(s) = K_r (1 + \frac{T_D * s}{1 + \epsilon s} + \frac{1}{T_I*s} )\f$
  *
  * \ingroup Regulator
  * \param rp pointer to the structure, that contain regulator data
  * \param Kr regulator gain
- * \param Ti integration time constant (\f$T_i=T_I/T_VZ\f$ compared to continuous system)
- * \param Td derivation time constant (\f$T_d=T_VZ/T_D\f$  compared to continuous system)
+ * \param Ti integration time constant (\f$T_i=T_I/T_{VZ}\f$ compared to continuous system)
+ * \param Td derivation time constant (\f$T_d=T_{VZ}/T_D\f$  compared to continuous system)
  *  */
 void RegulatorSetPID(struct RegulatorParams * rp, float Kr, float Ti, float Td);
 

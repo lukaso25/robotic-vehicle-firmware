@@ -170,9 +170,9 @@ signed long MotorControlInit( unsigned long priority)
 	IntEnable(INT_QEI1);
 
 	myDrive.mot2.reg.desired = myDrive.mot1.reg.desired = 0;
-	myDrive.mot2.reg.Kr = myDrive.mot1.reg.Kr = 0.9;
-	myDrive.mot2.reg.Ti = myDrive.mot1.reg.Ti = 0.2;
-	myDrive.mot2.reg.Td = myDrive.mot1.reg.Td = 0.1;
+	myDrive.mot2.reg.Kr = myDrive.mot1.reg.Kr = 1.28;
+	myDrive.mot2.reg.Ti = myDrive.mot1.reg.Ti = 0.0780;
+	myDrive.mot2.reg.Td = myDrive.mot1.reg.Td = 1.6031;
 	myDrive.mot2.reg.Beta = myDrive.mot1.reg.Beta = 1;
 	myDrive.mot2.reg.Kip = myDrive.mot1.reg.Kip = 0.5;
 	myDrive.mot2.reg.limit = myDrive.mot1.reg.limit = pwm_period;
@@ -290,18 +290,35 @@ void MotorControl_task( void * param)
 	{
 		if( xQueueReceive(xSpeedActQ, &speed, 100) == pdTRUE )
 		{
+			xQueueHandle pwmQue;
+			struct MotorControl * motor;
 			lastMotor = speed.id;
 
 			if (lastMotor == MOTOR_1)
 			{
+				pwmQue = xMotorPWMQ1;
+				motor =  &myDrive.mot1;
 				switch (myDrive.state)
 				{
 				case MOTOR_RUNNING:
-					pwm = RegulatorAction(&myDrive.mot1.reg, speed.value);
+					pwm = RegulatorAction(&motor->reg, speed.value);
 					break;
 				case MOTOR_MANUAL:
-					myDrive.mot1.reg.measured = speed.value;
-					myDrive.mot1.reg.action = pwm = myDrive.mot1.reg.desired;
+					motor->reg.measured = speed.value;
+					motor->reg.action = pwm = myDrive.mot1.reg.desired;
+					break;
+				case MOTOR_HARMONIC_BALANCE:
+					motor->reg.measured = speed.value;
+					//! test Metoda harmonické rovnováhy
+					if (speed.value>0)
+					{
+						motor->reg.action = pwm = -HARMONIC_BALANCE_RELAY_LIMIT;
+					}
+					else
+					{
+						motor->reg.action = pwm = HARMONIC_BALANCE_RELAY_LIMIT;
+					}
+					//myDrive.mot1.reg.action = pwm = myDrive.mot1.reg.desired;
 					break;
 				case MOTOR_FAILURE:
 				case MOTOR_STOP:
@@ -311,7 +328,7 @@ void MotorControl_task( void * param)
 					break;
 				}
 
-				if (xQueueSend(xMotorPWMQ1, &pwm, 10) != pdTRUE)
+				if (xQueueSend(pwmQue, &pwm, 10) != pdTRUE)
 				{
 					MotorControlSetState(MOTOR_FAILURE);
 					SetError(ERROR_MOTOR);
@@ -327,6 +344,8 @@ void MotorControl_task( void * param)
 				case MOTOR_MANUAL:
 					myDrive.mot2.reg.measured = speed.value;
 					myDrive.mot2.reg.action = pwm = myDrive.mot2.reg.desired;
+					break;
+				case MOTOR_HARMONIC_BALANCE:
 					break;
 				case MOTOR_FAILURE:
 				case MOTOR_STOP:
