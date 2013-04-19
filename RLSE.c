@@ -73,7 +73,7 @@ void rmnc_update( rlseType* rlses, matrixValType y, matrixValType u, matrixSizeT
 		//P
 		matMul(temp_nn,rlses->K,phiT);
 		matMul(temp_nn_2,temp_nn,rlses->P);
-		matSubstract(rlses->P,temp_nn_2);
+		matSubtract(rlses->P,temp_nn_2);
 
 		matDivConst(rlses->P,EXP_FORGETING_COEF);
 

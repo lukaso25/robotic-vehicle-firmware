@@ -47,7 +47,7 @@ void SlipSerialProcessPacket(char packet_buffer[], int length)
 			//need to be tested
 		}
 		ClearError(ERROR_COMM_SLIP);
-		MotorControlSetSpeed(packet_buffer[1]|(packet_buffer[2]<<8), packet_buffer[3]|(packet_buffer[4]<<8));
+		MotorControlSetWheelSpeed(packet_buffer[1]|(packet_buffer[2]<<8), packet_buffer[3]|(packet_buffer[4]<<8));
 		MotorControlSetState(motorMode);
 		break;
 	case ID_MOTOR_MODE:
@@ -95,6 +95,9 @@ void ControlTask_task( void * param)
 
 	while(1)
 	{
+
+
+
 		if( MotorControlWaitData(50) == pdTRUE )
 		{
 			short regvalues[6];

@@ -76,8 +76,8 @@
 <hide_menu_item_id id="org.coocox.codebugger.configuration.showPeripheralsAction"/>
 <hide_menu_item_id id="org.coocox.codebugger.configuration.showVariablesAction"/>
 <hide_menu_item_id id="org.coocox.builder.ui.openProjectExplorerAction"/>
-<hide_menu_item_id id="org.coocox.codebugger.trace.actions.ShowTraceControlAction"/>
 <hide_menu_item_id id="org.eclipse.debug.ui.commands.TerminateAndRelaunch"/>
+<hide_menu_item_id id="org.coocox.codebugger.trace.actions.ShowTraceControlAction"/>
 <hide_menu_item_id id="org.coocox.codebugger.configuration.showRegistersAction"/>
 <hide_toolbar_item_id id="org.eclipse.cdt.debug.internal.ui.actions.ToggleInstructionStepModeAction"/>
 <hide_toolbar_item_id id="org.eclipse.ui.edit.text.toggleShowSelectedElementOnly"/>
@@ -169,8 +169,8 @@
 <hide_menu_item_id id="org.coocox.builder.rcp.flashMenu"/>
 <hide_menu_item_id id="org.coocox.builder.ui.debug"/>
 <hide_menu_item_id id="org.coocox.builder.ui.showHelpViewAction"/>
-<hide_menu_item_id id="org.coocox.builder.ui.showHelpViewAction1"/>
 <hide_menu_item_id id="org.coocox.builder.ui.newFile"/>
+<hide_menu_item_id id="org.coocox.builder.ui.showHelpViewAction1"/>
 <hide_menu_item_id id="org.coocox.builder.ui.actions.ConfigurationAction"/>
 <hide_menu_item_id id="org.coocox.builder.ui.builderDefaultLayout"/>
 <hide_menu_item_id id="org.eclipse.jdt.ui.source.menu"/>
@@ -191,8 +191,8 @@
 <hide_toolbar_item_id id="org.eclipse.ui.edit.text.toggleShowSelectedElementOnly"/>
 <hide_toolbar_item_id id="org.coocox.builder.ui.build"/>
 <hide_toolbar_item_id id="org.coocox.welcome.ui.action.welcome"/>
-<hide_toolbar_item_id id="org.coocox.codebugger.configuration.coideProgramDownloadAction"/>
 <hide_toolbar_item_id id="org.coocox.component.ui.ShowRepositoryAction"/>
+<hide_toolbar_item_id id="org.coocox.codebugger.configuration.coideProgramDownloadAction"/>
 <view id="org.eclipse.ui.console.ConsoleView"/>
 <view id="org.eclipse.debug.ui.DebugView"/>
 <view id="org.coocox.codebugger.trace.ui.traceview"/>
@@ -211,7 +211,7 @@
 <page content="org.eclipse.ui.internal.introview" label="LabelNotFound"/>
 </folder>
 </info>
-<info folder="true" part="org.eclipse.ui.internal.ViewStack@15a4d06" ratio="0.7" ratioLeft="658" ratioRight="282" relationship="4" relative="org.eclipse.ui.internal.ViewStack@1f97fa2">&#x0A;<folder activePageID="org.eclipse.debug.ui.DebugView" appearance="2" expanded="2">&#x0A;<page content="org.eclipse.ui.console.ConsoleView" label="Console"/>
+<info folder="true" part="org.eclipse.ui.internal.ViewStack@15a4d06" ratio="0.7" ratioLeft="658" ratioRight="282" relationship="4" relative="org.eclipse.ui.internal.ViewStack@1f97fa2">&#x0A;<folder activePageID="org.eclipse.ui.console.ConsoleView" appearance="2" expanded="2">&#x0A;<page content="org.eclipse.ui.console.ConsoleView" label="Console"/>
 <page content="org.eclipse.debug.ui.DebugView" label="Debug"/>
 <page content="org.eclipse.debug.ui.BreakpointView" label="LabelNotFound"/>
 <presentation id="org.eclipse.ui.presentations.WorkbenchPresentationFactory">&#x0A;<part id="0"/>
@@ -219,7 +219,7 @@
 </presentation>
 </folder>
 </info>
-<info folder="true" part="org.eclipse.ui.internal.ViewStack@1097a07" ratio="0.5" ratioLeft="820" ratioRight="820" relationship="2" relative="org.eclipse.ui.internal.ViewStack@15a4d06">&#x0A;<folder activePageID="org.eclipse.debug.ui.ExpressionView" appearance="2" expanded="2">&#x0A;<page content="org.coocox.codebugger.trace.ui.traceview" label="Semihosting"/>
+<info folder="true" part="org.eclipse.ui.internal.ViewStack@1097a07" ratio="0.5" ratioLeft="820" ratioRight="820" relationship="2" relative="org.eclipse.ui.internal.ViewStack@15a4d06">&#x0A;<folder activePageID="org.eclipse.cdt.debug.ui.memory.memorybrowser.MemoryBrowser" appearance="2" expanded="2">&#x0A;<page content="org.coocox.codebugger.trace.ui.traceview" label="Semihosting"/>
 <page content="org.eclipse.debug.ui.VariableView" label="Variables"/>
 <page content="org.eclipse.cdt.debug.ui.memory.memorybrowser.MemoryBrowser" label="Memory Browser"/>
 <page content="org.eclipse.debug.ui.ExpressionView" label="Expressions"/>
@@ -261,13 +261,16 @@
 <part id="5"/>
 <part id="6"/>
 <part id="7"/>
+<part id="8"/>
+<part id="9"/>
+<part id="10"/>
 </presentation>
 </folder>
 </info>
 </editorArea>
 <editor id="org.eclipse.cdt.ui.editor.CEditor" name="Main.c" partName="Main.c" path="C:/SP2/robotic-vehicle-firmware/Main.c" title="Main.c" tooltip="C:/SP2/robotic-vehicle-firmware/Main.c" workbook="DefaultEditorWorkbook">
 <input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/robotic-vehicle-firmware/Main.c"/>
-<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="4974" selectionTopPixel="4400"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="3132" selectionTopPixel="2354"/>
 </editor>
 <editor id="org.eclipse.cdt.ui.editor.CEditor" name="SimpleMatrix.c" partName="SimpleMatrix.c" path="C:/SP2/robotic-vehicle-firmware/SimpleMatrix.c" title="SimpleMatrix.c" tooltip="C:/SP2/robotic-vehicle-firmware/SimpleMatrix.c" workbook="DefaultEditorWorkbook">
 <input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/robotic-vehicle-firmware/SimpleMatrix.c"/>
@@ -289,7 +292,7 @@
 <input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/robotic-vehicle-firmware/trcConfig.h"/>
 <editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="0" selectionTopPixel="1000"/>
 </editor>
-<editor activePart="true" focus="true" id="org.eclipse.cdt.ui.editor.CEditor" name="tasks.c" partName="tasks.c" path="C:/SP2/robotic-vehicle-firmware/FreeRTOS/tasks.c" title="tasks.c" tooltip="C:/SP2/robotic-vehicle-firmware/FreeRTOS/tasks.c" workbook="DefaultEditorWorkbook">
+<editor id="org.eclipse.cdt.ui.editor.CEditor" name="tasks.c" partName="tasks.c" path="C:/SP2/robotic-vehicle-firmware/FreeRTOS/tasks.c" title="tasks.c" tooltip="C:/SP2/robotic-vehicle-firmware/FreeRTOS/tasks.c" workbook="DefaultEditorWorkbook">
 <input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/robotic-vehicle-firmware/FreeRTOS/tasks.c"/>
 <editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="78949" selectionTopPixel="46680"/>
 </editor>
@@ -297,19 +300,30 @@
 <input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/robotic-vehicle-firmware/FreeRTOS/heap_2.c"/>
 <editorState selectionHorizontalPixel="0" selectionLength="19" selectionOffset="6000" selectionTopPixel="1950"/>
 </editor>
+<editor activePart="true" focus="true" id="org.eclipse.cdt.ui.editor.CEditor" name="MotorControl.c" partName="MotorControl.c" path="C:/SP2/robotic-vehicle-firmware/MotorControl.c" title="MotorControl.c" tooltip="C:/SP2/robotic-vehicle-firmware/MotorControl.c" workbook="DefaultEditorWorkbook">
+<input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/robotic-vehicle-firmware/MotorControl.c"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="5563" selectionTopPixel="3991"/>
+</editor>
+<editor id="org.eclipse.cdt.ui.editor.CEditor" name="MotorControl.h" partName="MotorControl.h" path="C:/SP2/robotic-vehicle-firmware/MotorControl.h" title="MotorControl.h" tooltip="C:/SP2/robotic-vehicle-firmware/MotorControl.h" workbook="DefaultEditorWorkbook">
+<input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/robotic-vehicle-firmware/MotorControl.h"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="1043" selectionTopPixel="300"/>
+</editor>
+<editor id="org.eclipse.cdt.ui.editor.CEditor" name="Main.h" partName="Main.h" path="C:/SP2/robotic-vehicle-firmware/Main.h" title="Main.h" tooltip="C:/SP2/robotic-vehicle-firmware/Main.h" workbook="DefaultEditorWorkbook">
+<input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/robotic-vehicle-firmware/Main.h"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="580" selectionTopPixel="0"/>
+</editor>
 </editors>
 <views>
 <view id="org.eclipse.debug.ui.ExpressionView" partName="Expressions">
 <viewState/>
 </view>
 <view id="org.coocox.builder.ui.views.ProjectView" partName="Project">
-<viewState CommonNavigator.LINKING_ENABLED="0" horizontalPosition="0" org.eclipse.ui.navigator.resources.workingSets.showTopLevelWorkingSets="0" verticalPosition="0">
+<viewState CommonNavigator.LINKING_ENABLED="0" horizontalPosition="0" org.eclipse.ui.navigator.resources.workingSets.showTopLevelWorkingSets="0" verticalPosition="12">
 <expanded>
 <element path="/robotic-vehicle-firmware"/>
-<element path="/robotic-vehicle-firmware/FreeRTOS"/>
 </expanded>
 <selection>
-<element path="/robotic-vehicle-firmware/FreeRTOS/heap_2.c"/>
+<element path="/robotic-vehicle-firmware/Main.h"/>
 </selection>
 </viewState>
 </view>
@@ -368,8 +382,8 @@
 <hide_menu_item_id id="org.coocox.codebugger.configuration.showPeripheralsAction"/>
 <hide_menu_item_id id="org.coocox.codebugger.configuration.showVariablesAction"/>
 <hide_menu_item_id id="org.coocox.builder.ui.openProjectExplorerAction"/>
-<hide_menu_item_id id="org.coocox.codebugger.trace.actions.ShowTraceControlAction"/>
 <hide_menu_item_id id="org.eclipse.debug.ui.commands.TerminateAndRelaunch"/>
+<hide_menu_item_id id="org.coocox.codebugger.trace.actions.ShowTraceControlAction"/>
 <hide_menu_item_id id="org.coocox.codebugger.configuration.showRegistersAction"/>
 <hide_toolbar_item_id id="org.eclipse.cdt.debug.internal.ui.actions.ToggleInstructionStepModeAction"/>
 <hide_toolbar_item_id id="org.eclipse.ui.edit.text.toggleShowSelectedElementOnly"/>
@@ -494,51 +508,36 @@
 <view id="org.coocox.builder.ui.views.ProjectView"/>
 <fastViewBars/>
 <viewLayoutRec closeable="false" id="org.eclipse.debug.ui.DebugView"/>
-<layout>
-<mainWindow>
-<info folder="true" part="org.eclipse.ui.internal.ViewStack@1f97fa2">
-<folder activePageID="org.coocox.builder.ui.views.ProjectView" appearance="2" expanded="2">
-<page content="org.coocox.builder.ui.views.ProjectView" label="Project"/>
-<presentation id="org.eclipse.ui.presentations.WorkbenchPresentationFactory">
-<part id="0"/>
+<layout>&#x0A;<mainWindow>&#x0A;<info folder="true" part="org.eclipse.ui.internal.ViewStack@1f97fa2">&#x0A;<folder activePageID="org.coocox.builder.ui.views.ProjectView" appearance="2" expanded="2">&#x0A;<page content="org.coocox.builder.ui.views.ProjectView" label="Project"/>
+<presentation id="org.eclipse.ui.presentations.WorkbenchPresentationFactory">&#x0A;<part id="0"/>
 </presentation>
 </folder>
 </info>
-<info folder="true" part="stickyFolderRight" ratio="0.75" ratioLeft="1254" ratioRight="418" relationship="2" relative="org.eclipse.ui.internal.ViewStack@1f97fa2">
-<folder appearance="2" expanded="2">
-<page content="org.eclipse.help.ui.HelpView" label="LabelNotFound"/>
+<info folder="true" part="stickyFolderRight" ratio="0.75" ratioLeft="1254" ratioRight="418" relationship="2" relative="org.eclipse.ui.internal.ViewStack@1f97fa2">&#x0A;<folder appearance="2" expanded="2">&#x0A;<page content="org.eclipse.help.ui.HelpView" label="LabelNotFound"/>
 <page content="org.eclipse.ui.internal.introview" label="LabelNotFound"/>
 </folder>
 </info>
-<info folder="true" part="org.eclipse.ui.internal.ViewStack@15a4d06" ratio="0.7" ratioLeft="658" ratioRight="282" relationship="4" relative="org.eclipse.ui.internal.ViewStack@1f97fa2">
-<folder activePageID="org.eclipse.ui.console.ConsoleView" appearance="2" expanded="2">
-<page content="org.eclipse.ui.console.ConsoleView" label="Console"/>
+<info folder="true" part="org.eclipse.ui.internal.ViewStack@15a4d06" ratio="0.7" ratioLeft="658" ratioRight="282" relationship="4" relative="org.eclipse.ui.internal.ViewStack@1f97fa2">&#x0A;<folder activePageID="org.eclipse.ui.console.ConsoleView" appearance="2" expanded="2">&#x0A;<page content="org.eclipse.ui.console.ConsoleView" label="Console"/>
 <page content="org.eclipse.debug.ui.DebugView" label="Debug"/>
 <page content="org.eclipse.debug.ui.BreakpointView" label="LabelNotFound"/>
-<presentation id="org.eclipse.ui.presentations.WorkbenchPresentationFactory">
-<part id="0"/>
+<presentation id="org.eclipse.ui.presentations.WorkbenchPresentationFactory">&#x0A;<part id="0"/>
 <part id="1"/>
 </presentation>
 </folder>
 </info>
-<info folder="true" part="org.eclipse.ui.internal.ViewStack@1097a07" ratio="0.5" ratioLeft="820" ratioRight="820" relationship="2" relative="org.eclipse.ui.internal.ViewStack@15a4d06">
-<folder activePageID="org.eclipse.cdt.debug.ui.memory.memorybrowser.MemoryBrowser" appearance="2" expanded="2">
-<page content="org.coocox.codebugger.trace.ui.traceview" label="Semihosting"/>
+<info folder="true" part="org.eclipse.ui.internal.ViewStack@1097a07" ratio="0.5" ratioLeft="820" ratioRight="820" relationship="2" relative="org.eclipse.ui.internal.ViewStack@15a4d06">&#x0A;<folder activePageID="org.eclipse.cdt.debug.ui.memory.memorybrowser.MemoryBrowser" appearance="2" expanded="2">&#x0A;<page content="org.coocox.codebugger.trace.ui.traceview" label="Semihosting"/>
 <page content="org.eclipse.debug.ui.VariableView" label="Variables"/>
 <page content="org.eclipse.cdt.debug.ui.memory.memorybrowser.MemoryBrowser" label="Memory Browser"/>
 <page content="org.eclipse.debug.ui.ExpressionView" label="Expressions"/>
 <page content="org.eclipse.debug.ui.MemoryView" label="LabelNotFound"/>
-<presentation id="org.eclipse.ui.presentations.WorkbenchPresentationFactory">
-<part id="0"/>
+<presentation id="org.eclipse.ui.presentations.WorkbenchPresentationFactory">&#x0A;<part id="0"/>
 <part id="1"/>
 <part id="2"/>
 <part id="3"/>
 </presentation>
 </folder>
 </info>
-<info folder="true" part="org.eclipse.ui.internal.ViewStack@12a82ec" ratio="0.75" ratioLeft="1254" ratioRight="418" relationship="2" relative="org.eclipse.ui.internal.ViewStack@1f97fa2">
-<folder appearance="2" expanded="2">
-<page content="org.eclipse.cdt.dsf.debug.ui.disassembly.view" label="LabelNotFound"/>
+<info folder="true" part="org.eclipse.ui.internal.ViewStack@12a82ec" ratio="0.75" ratioLeft="1254" ratioRight="418" relationship="2" relative="org.eclipse.ui.internal.ViewStack@1f97fa2">&#x0A;<folder appearance="2" expanded="2">&#x0A;<page content="org.eclipse.cdt.dsf.debug.ui.disassembly.view" label="LabelNotFound"/>
 <page content="org.eclipse.ui.views.ContentOutline" label="LabelNotFound"/>
 <page content="org.eclipse.debug.ui.RegisterView" label="LabelNotFound"/>
 <page content="org.coocox.coassistant.view.CoAssistantView_debug" label="LabelNotFound"/>
@@ -556,59 +555,17 @@
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/Main.c"/>
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/SimpleMatrix.c"/>
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/SimpleMatrix.h"/>
-<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/SlipSerial.h"/>
-<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/MotorControl.c"/>
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/FreeRTOSConfig.h"/>
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/trcConfig.h"/>
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/Hooks.c"/>
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/FreeRTOS/heap_2.c"/>
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/FreeRTOS/tasks.c"/>
+<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/Main.c"/>
+<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/MotorControl.c"/>
+<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/SlipSerial.h"/>
+<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/MotorControl.h"/>
+<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/Main.h"/>
 </editors>
-<item historyLabel="Main.c" index="0">
-<position info="not_deleted" x="2755" y="0"/>
-</item>
-<item historyLabel="Main.c" index="0">
-<position info="not_deleted" x="3988" y="0"/>
-</item>
-<item historyLabel="Main.c" index="0">
-<position info="not_deleted" x="1773" y="0"/>
-</item>
-<item historyLabel="MotorControl.c" index="4">
-<position info="not_deleted" x="10934" y="0"/>
-</item>
-<item historyLabel="Main.c" index="0">
-<position info="not_deleted" x="1773" y="0"/>
-</item>
-<item historyLabel="MotorControl.c" index="4">
-<position info="not_deleted" x="10934" y="0"/>
-</item>
-<item historyLabel="Main.c" index="0">
-<position info="not_deleted" x="3988" y="0"/>
-</item>
-<item historyLabel="SimpleMatrix.c" index="1">
-<position info="not_deleted" x="3498" y="0"/>
-</item>
-<item historyLabel="Main.c" index="0">
-<position info="not_deleted" x="1773" y="0"/>
-</item>
-<item historyLabel="Main.c" index="0">
-<position info="not_deleted" x="1795" y="0"/>
-</item>
-<item historyLabel="SimpleMatrix.c" index="1">
-<position info="not_deleted" x="4828" y="3"/>
-</item>
-<item historyLabel="SimpleMatrix.h" index="2">
-<position info="not_deleted" x="615" y="0"/>
-</item>
-<item historyLabel="SlipSerial.h" index="3">
-<position info="not_deleted" x="0" y="0"/>
-</item>
-<item historyLabel="SimpleMatrix.h" index="2">
-<position info="not_deleted" x="418" y="11"/>
-</item>
-<item historyLabel="SimpleMatrix.c" index="1">
-<position info="not_deleted" x="4828" y="3"/>
-</item>
 <item historyLabel="SimpleMatrix.c" index="1">
 <position info="not_deleted" x="5788" y="0"/>
 </item>
@@ -624,10 +581,10 @@
 <item historyLabel="Main.c" index="0">
 <position info="not_deleted" x="3301" y="0"/>
 </item>
-<item historyLabel="FreeRTOSConfig.h" index="5">
+<item historyLabel="FreeRTOSConfig.h" index="3">
 <position info="not_deleted" x="3908" y="0"/>
 </item>
-<item historyLabel="trcConfig.h" index="6">
+<item historyLabel="trcConfig.h" index="4">
 <position info="not_deleted" x="0" y="0"/>
 </item>
 <item historyLabel="Main.c" index="0">
@@ -636,16 +593,16 @@
 <item historyLabel="Main.c" index="0">
 <position info="not_deleted" x="3988" y="0"/>
 </item>
-<item historyLabel="Hooks.c" index="7">
+<item historyLabel="Hooks.c" index="5">
 <position info="not_deleted" x="561" y="0"/>
 </item>
 <item historyLabel="Main.c" index="0">
 <position info="not_deleted" x="3509" y="0"/>
 </item>
-<item historyLabel="FreeRTOSConfig.h" index="5">
+<item historyLabel="FreeRTOSConfig.h" index="3">
 <position info="not_deleted" x="3825" y="0"/>
 </item>
-<item historyLabel="heap_2.c" index="8">
+<item historyLabel="heap_2.c" index="6">
 <position info="not_deleted" x="6000" y="19"/>
 </item>
 <item historyLabel="Main.c" index="0">
@@ -675,7 +632,7 @@
 <item historyLabel="Main.c" index="0">
 <position info="not_deleted" x="4974" y="0"/>
 </item>
-<item historyLabel="Hooks.c" index="7">
+<item historyLabel="Hooks.c" index="5">
 <position info="not_deleted" x="666" y="0"/>
 </item>
 <item historyLabel="Main.c" index="0">
@@ -711,8 +668,53 @@
 <item historyLabel="Main.c" index="0">
 <position info="not_deleted" x="4974" y="0"/>
 </item>
-<item active="true" historyLabel="tasks.c" index="9">
+<item historyLabel="tasks.c" index="7">
 <position info="not_deleted" x="78949" y="0"/>
+</item>
+<item historyLabel="Main.c" index="8">
+<position info="not_deleted" x="3519" y="0"/>
+</item>
+<item historyLabel="MotorControl.c" index="9">
+<position info="not_deleted" x="9065" y="0"/>
+</item>
+<item historyLabel="Main.c" index="8">
+<position info="not_deleted" x="3519" y="0"/>
+</item>
+<item historyLabel="SlipSerial.h" index="10">
+<position info="not_deleted" x="0" y="0"/>
+</item>
+<item historyLabel="MotorControl.c" index="9">
+<position info="not_deleted" x="9188" y="0"/>
+</item>
+<item historyLabel="MotorControl.h" index="11">
+<position info="not_deleted" x="554" y="28"/>
+</item>
+<item historyLabel="MotorControl.c" index="9">
+<position info="not_deleted" x="9230" y="0"/>
+</item>
+<item historyLabel="MotorControl.h" index="11">
+<position info="not_deleted" x="376" y="0"/>
+</item>
+<item historyLabel="MotorControl.c" index="9">
+<position info="not_deleted" x="9212" y="22"/>
+</item>
+<item historyLabel="MotorControl.h" index="11">
+<position info="not_deleted" x="1043" y="0"/>
+</item>
+<item historyLabel="MotorControl.c" index="9">
+<position info="not_deleted" x="10237" y="25"/>
+</item>
+<item historyLabel="MotorControl.c" index="9">
+<position info="not_deleted" x="9751" y="0"/>
+</item>
+<item historyLabel="MotorControl.c" index="9">
+<position info="not_deleted" x="9065" y="0"/>
+</item>
+<item historyLabel="Main.h" index="12">
+<position info="not_deleted" x="580" y="0"/>
+</item>
+<item active="true" historyLabel="MotorControl.c" index="9">
+<position info="not_deleted" x="9065" y="0"/>
 </item>
 </navigationHistory>
 <input factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/" type="8"/>
@@ -721,6 +723,15 @@
 <actionBarAdvisor/>
 </window>
 <mruList>
+<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="Main.h" tooltip="robotic-vehicle-firmware/Main.h">
+<persistable path="/robotic-vehicle-firmware/Main.h"/>
+</file>
+<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="MotorControl.h" tooltip="robotic-vehicle-firmware/MotorControl.h">
+<persistable path="/robotic-vehicle-firmware/MotorControl.h"/>
+</file>
+<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="MotorControl.c" tooltip="robotic-vehicle-firmware/MotorControl.c">
+<persistable path="/robotic-vehicle-firmware/MotorControl.c"/>
+</file>
 <file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="heap_2.c" tooltip="robotic-vehicle-firmware/FreeRTOS/heap_2.c">
 <persistable path="/robotic-vehicle-firmware/FreeRTOS/heap_2.c"/>
 </file>
@@ -736,12 +747,8 @@
 <file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="SlipSerial.h" tooltip="robotic-vehicle-firmware/SlipSerial.h">
 <persistable path="/robotic-vehicle-firmware/SlipSerial.h"/>
 </file>
-<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="MotorControl.c" tooltip="robotic-vehicle-firmware/MotorControl.c">
-<persistable path="/robotic-vehicle-firmware/MotorControl.c"/>
-</file>
 <file factoryID="org.coocox.component.ui.editors.repository.RepositoryElementFactory" id="org.coocox.builder.ui.editors.repository.RepositoryBrowser" name="Repository" tooltip="Repository">
-<persistable>
-<subPage/>
+<persistable>&#x0A;<subPage/>
 </persistable>
 </file>
 <file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="startup_lm3s.c" tooltip="robotic-vehicle-firmware/startup/startup_lm3s.c">
@@ -761,9 +768,6 @@
 </file>
 <file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="pwm.c" tooltip="robotic-vehicle-firmware/lm3slib/driverlib/pwm.c">
 <persistable path="/robotic-vehicle-firmware/lm3slib/driverlib/pwm.c"/>
-</file>
-<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="Main.h" tooltip="robotic-vehicle-firmware/Main.h">
-<persistable path="/robotic-vehicle-firmware/Main.h"/>
 </file>
 </mruList>
 </workbench>

@@ -34,6 +34,7 @@ matrixType* phi;*/
 inline void matPrint( matrixType *mt);
 void matTest( void);
 void rmnc_init( rlseType* rlses);
+void rmnc_reinit( rlseType* rlses);
 void rmnc_update( rlseType* rlses, matrixValType y, matrixValType u, matrixSizeType condition);
 
 #endif//__RLSE_H__

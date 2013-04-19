@@ -35,7 +35,7 @@ enum MotorState
 	MOTOR_MANUAL = 3,
 	//! something is wrong
 	MOTOR_FAILURE = 4,
-	//! Harmonic balance test
+	//! harmonic balance test
 	MOTOR_HARMONIC_BALANCE = 5
 };
 
@@ -174,7 +174,22 @@ signed portBASE_TYPE MotorControlWaitData(portTickType timeout);
  * \param v2 desired speed for motor 2
  * \ingroup MotorControl
  * */
-void MotorControlSetSpeed(signed short v1, signed short v2);
+void MotorControlSetWheelSpeed(signed short v1, signed short v2);
+
+/*! \brief This function can set a speed for differential drive as forward and angular speed.
+ *
+ *
+ *
+ * Example usage:
+ *  \code{c}
+ *  // set new desired speed to 100 mm/s and 200 rad/s ticks per period
+	MotorControlSetSpeed(100,200);
+	\endcode
+ * \param v forward speed
+ * \param w rotation speed
+ * \ingroup MotorControl
+ * */
+void MotorControlSetSpeed(signed short v, signed short w);
 
 
 // FreeRTOS task

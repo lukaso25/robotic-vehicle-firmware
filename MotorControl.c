@@ -215,6 +215,11 @@ void MotorControlSetState( enum MotorState st)
 		GPIOPinWrite(MOTOR_SHIFTER_OE_PORT,MOTOR_SHIFTER_OE,(unsigned char)~MOTOR_SHIFTER_OE);
 		myDrive.state = st;
 		break;
+	case MOTOR_HARMONIC_BALANCE:
+		GPIOPinTypeGPIOOutput( MOTOR_SHIFTER_OE_PORT, MOTOR_SHIFTER_OE);
+		GPIOPinWrite(MOTOR_SHIFTER_OE_PORT,MOTOR_SHIFTER_OE,(unsigned char)~MOTOR_SHIFTER_OE);
+		myDrive.state = st;
+		break;
 	case MOTOR_MANUAL:
 		GPIOPinTypeGPIOOutput( MOTOR_SHIFTER_OE_PORT, MOTOR_SHIFTER_OE);
 		GPIOPinWrite(MOTOR_SHIFTER_OE_PORT,MOTOR_SHIFTER_OE,(unsigned char)~MOTOR_SHIFTER_OE);
@@ -244,16 +249,9 @@ void MotorControlSetState( enum MotorState st)
 signed portBASE_TYPE MotorControlWaitData(portTickType timeout)
 {
 	return xSemaphoreTake( xWaitData, timeout );
-	// See if we can obtain the semaphore. If the semaphore is not available
-	// wait 10 ticks to see if it becomes free.
-	//if( xSemaphoreTake( xSemaphore, ( portTickType ) 10 ) == pdTRUE )
-	//{
-	// We were able to obtain the semaphore and can now access the
-	// shared resource.
-	// ...
 }
 
-void MotorControlSetSpeed(signed short v1, signed short v2)
+void MotorControlSetWheelSpeed(signed short v1, signed short v2)
 {
 	// saturation??
 	//we only transfer input paramtrs into regulator structure
@@ -261,14 +259,12 @@ void MotorControlSetSpeed(signed short v1, signed short v2)
 	myDrive.mot2.reg.desired = v2;
 }
 
-/*void MotorControlSetManualValue(signed short m1, signed short m2)
+void MotorControlSetSpeed(signed short v, signed short w)
 {
-	// saturation??
-	//we only transfer input paramtrs into regulator structure
-	myDrive.mot1.reg.desired = m1;
-	myDrive.mot2.reg.desired = m2;
-}*/
-
+	//
+	myDrive.mot1.reg.desired =  0.5 * ( (2.0*v) + (w*0.75) );
+	myDrive.mot2.reg.desired = -0.5 * ( (2.0*v) - (w*0.75) );
+}
 
 enum MotorState MotorControlGetState( void)
 {

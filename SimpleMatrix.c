@@ -1,13 +1,11 @@
 #include "SimpleMatrix.h"
 
-#ifdef FREERTOS
-#include "FreeRTOS.h"
+#ifndef FREERTOS
 
-#else
 #include <stdio.h>
 #include <stdlib.h>
-#error WIN
 #define pvPortMalloc(x) malloc(x)
+#define vPortFree(x) free(x)
 
 inline void matPrint( matrixType *mt)
 {
@@ -20,40 +18,112 @@ inline void matPrint( matrixType *mt)
 		// for each cell(column) in row
 		for( j = 0; j < (mt->n) ; j++)
 		{
-			printf("%7.4f ",mt->mat[j+(i*mt->n)]);
+			printf("%5.2e ",mt->mat[j+(i*mt->n)]);
 		}
 		printf("\r\n");
 	}
 }
 
+inline void matFillTestPattern(matrixType *res)
+{
+	matrixSizeType i;
+	//for each row
+	for( i = 0; i<(res->m*res->n); i++)
+	{
+		res->mat[i] = i+1;
+	}
+}
+
+void matTest( void)
+{
+	/*matrixType* a;
+	matrixType* b;
+	matrixType* c;
+
+	a = matAlloc(3,3);
+	b = matAlloc(3,3);
+	c = matAlloc(3,3);
+
+	matEye(a,2);
+	matFill(b,3);
+
+	matAdd(c,a,b);*/
+
+	matrixType* a;
+	matrixType* b;
+	matrixType* c;
+	matrixType* d;
+	matrixType* e;
+
+	a = matAlloc(2,3);
+	b = matAlloc(3,2);
+	c = matAlloc(2,2);
+	d = matAlloc(2,4);
+	e = matAlloc(2,4);
+
+	//matEye(a,2);
+	//matFill(b,3);
+	matFillTestPattern(a);
+	matFillTestPattern(b);
+	matFill(d,1.0);
+	matPrint(a);
+	matPrint(b);
+
+	matMul(c,a,b);
+	matPrint(c);
+
+	matMul3(e,a,b,d);
+	matPrint(e);
+
+}
+
+#else
+
+#include "FreeRTOS.h"
+
 #endif
 
-matrixType * matAlloc(matrixSizeType m, matrixSizeType n)
+matrixType * matAlloc(matrixSizeType row, matrixSizeType column)
 {
 	matrixType * temp;
+	if ((row<1) || (column<1))
+		return NULL;
+
+	// first allocate memory for data structure
 	temp = pvPortMalloc(sizeof(matrixType));
 	if (temp == NULL)
 		return temp;
 	else
 	{
-		temp->mat = pvPortMalloc(m*n*sizeof(matrixValType));
+		// when successful, allocate matrix items
+		temp->mat = pvPortMalloc(row*column*sizeof(matrixValType));
 		if (temp->mat == NULL)
 			return NULL;
 		else
 		{
-			temp->m = m;
-			temp->n = n;
+			// matrix dimensions settrs
+			temp->m = row;
+			temp->n = column;
+			// return of new structure pointer
 			return temp;
 		}
 	}
 }
 
+void matFree(matrixType *m)
+{
+	//
+	vPortFree(m->mat);
+	vPortFree(m);
+}
 
-
-inline void matAdd(matrixType *a, matrixType *b)
+inline matrixSizeType matAdd(matrixType *a, matrixType *b)
 {
 	matrixSizeType i, j;
-
+#ifdef MATRIX_CHECK_DIMENSIONS
+	if ((a->m!=b->m)||(a->n!=b->n))
+		return -1;
+#endif
 	//for each row
 	for( i = 0; i<(a->m); i++)
 	{
@@ -63,11 +133,16 @@ inline void matAdd(matrixType *a, matrixType *b)
 			a->mat[j+(i*a->n)] += b->mat[j+(i*b->n)];
 		}
 	}
+	return 0;
 }
 
-inline void matSubstract(matrixType *a, matrixType *b)
+inline matrixSizeType matSubtract(matrixType *a, matrixType *b)
 {
 	matrixSizeType i, j;
+#ifdef MATRIX_CHECK_DIMENSIONS
+	if ((a->m!=b->m)||(a->n!=b->n))
+		return -1;
+#endif
 	//for each row
 	for( i = 0; i<(a->m); i++)
 	{
@@ -77,11 +152,16 @@ inline void matSubstract(matrixType *a, matrixType *b)
 			a->mat[j+(i*a->n)] -= b->mat[j+(i*b->n)];
 		}
 	}
+	return 0;
 }
 
-inline void matMul(matrixType *res, matrixType *a, matrixType *b)
+inline matrixSizeType matMul(matrixType *res, matrixType *a, matrixType *b)
 {
 	matrixSizeType i, j, k;
+#ifdef MATRIX_CHECK_DIMENSIONS
+	if ((res->m!=a->m)||(res->n!=b->n)||(a->n!=b->m))
+		return -1;
+#endif
 	//for each row
 	for( i = 0; i<(res->m); i++)
 	{
@@ -95,11 +175,49 @@ inline void matMul(matrixType *res, matrixType *a, matrixType *b)
 			}
 		}
 	}
+	return 0;
 }
 
-inline void matTranspose(matrixType *res, matrixType *a)
+inline matrixSizeType matMul3(matrixType *res, matrixType *a, matrixType *b, matrixType *c)
+{
+	matrixSizeType i, j, k;
+	matrixValType temp[MATRIX_TEMPORARY_MAX_SIZE];
+#ifdef MATRIX_CHECK_DIMENSIONS
+	if ((res->m!=a->m)||(res->n!=c->n)||(a->n!=b->m)||(b->n!=c->m)||(b->n>MATRIX_TEMPORARY_MAX_SIZE))
+		return -1;
+#endif
+	//for each row
+	for( i = 0; i<(res->m); i++)
+	{
+		// for each cell(column) in row mat b
+		for( j = 0; j < (b->n) ; j++)
+		{
+			temp[j] = 0;
+			for ( k = 0; k < (a->n); k++)
+			{
+				temp[j] += a->mat[k+(i*a->n)] * b->mat[j+(k*b->n)];
+			}
+		}
+		// for each cell(column) in row mat c
+		for( j = 0; j < (c->n) ; j++)
+		{
+			res->mat[j+(i*res->n)] = 0;
+			for ( k = 0; k < (c->m); k++)
+			{
+				res->mat[j+(i*res->n)] += temp[k] * c->mat[j+(k*c->n)];
+			}
+		}
+	}
+	return 0;
+}
+
+inline matrixSizeType matTranspose(matrixType *res, matrixType *a)
 {
 	matrixSizeType i, j;
+#ifdef MATRIX_CHECK_DIMENSIONS
+	if ((res->m!=a->n)||(res->n!=a->m))
+		return -1;
+#endif
 	//for each row
 	for( i = 0; i<(res->m); i++)
 	{
@@ -109,6 +227,7 @@ inline void matTranspose(matrixType *res, matrixType *a)
 			res->mat[j+(i*res->n)] = a->mat[i+(j*a->n)];
 		}
 	}
+	return 0;
 }
 
 inline void matScale(matrixType *a, matrixValType scale)
@@ -120,23 +239,30 @@ inline void matScale(matrixType *a, matrixValType scale)
 		// for each cell(column) in row
 		for( j = 0; j < (a->n) ; j++)
 		{
-				a->mat[j+(i*a->n)] *= scale;
+			a->mat[j+(i*a->n)] *= scale;
 		}
 	}
 }
 
-inline void matDivConst(matrixType *a, matrixValType value)
+inline matrixSizeType matDivConst(matrixType *a, matrixValType value)
 {
 	matrixSizeType i, j;
+
+#ifdef MATRIX_CHECK_DIMENSIONS
+	if (value == 0)
+		return -1;
+#endif
+
 	//for each row
 	for( i = 0; i<(a->m); i++)
 	{
 		// for each cell(column) in row
 		for( j = 0; j < (a->n) ; j++)
 		{
-				a->mat[j+(i*a->n)] /= value;
+			a->mat[j+(i*a->n)] /= value;
 		}
 	}
+	return 0;
 }
 
 inline void matAddConst(matrixType *a, matrixValType value)
@@ -148,7 +274,7 @@ inline void matAddConst(matrixType *a, matrixValType value)
 		// for each cell(column) in row
 		for( j = 0; j < (a->n) ; j++)
 		{
-				a->mat[j+(i*a->n)] += value;
+			a->mat[j+(i*a->n)] += value;
 		}
 	}
 }
@@ -159,7 +285,7 @@ inline void matFill(matrixType *res, matrixValType value)
 	//for each row
 	for( i = 0; i<(res->m*res->n); i++)
 	{
-			res->mat[i] = value;
+		res->mat[i] = value;
 	}
 }
 
@@ -178,52 +304,5 @@ inline void matEye(matrixType* res, matrixValType value)
 				res->mat[j+(i*res->n)] = 0;
 		}
 	}
-}
-inline void matFillTestPattern(matrixType *res)
-{
-	matrixSizeType i;
-	//for each row
-	for( i = 0; i<(res->m*res->n); i++)
-	{
-			res->mat[i] = i+1;
-	}
-}
-
-
-
-
-void matTest( void)
-{
-	/*matrixType* a;
-	matrixType* b;
-	matrixType* c;
-
-	a = matAlloc(3,3);
-	b = matAlloc(3,3);
-	c = matAlloc(3,3);
-
-	matEye(a,2);
-	matFill(b,3);
-
-	matAdd(c,a,b);*/
-
-	/*matrixType* a;
-	matrixType* aT;
-	matrixType* b;
-	matrixType* c;
-
-	a = matAlloc(3,2);
-	aT = matAlloc(2,3);
-	b = matAlloc(3,2);
-	c = matAlloc(2,2);
-
-	//matEye(a,2);
-	//matFill(b,3);
-	matFillTestPattern(a);
-	matFillTestPattern(b);
-
-	matTranspose(aT,a);
-
-	matMul(c,aT,b);*/
 }
 
