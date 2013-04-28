@@ -23,14 +23,14 @@
 #define SLIP_ESC_END         0xDC    /* ESC ESC_END means END data byte */
 #define SLIP_ESC_ESC         0xDD    /* ESC ESC_ESC means ESC data byte */
 
-// maximální delka pøíjmaného paketu
-#define MAX_PACKET_LENGH	(300)
+
 
 
 // OS objects objekty OS
 xSemaphoreHandle xTxMutex;
 char packet_buffer[MAX_PACKET_LENGH];
 static xQueueHandle xSerialReceive;
+portTickType SlipSerialtimeout;
 
 //! inicializaèní funkce
 signed portBASE_TYPE SlipSerialInit( unsigned portBASE_TYPE priority, unsigned long int baudrate, portTickType timeout)
@@ -63,6 +63,7 @@ signed portBASE_TYPE SlipSerialInit( unsigned portBASE_TYPE priority, unsigned l
 	//! Povolení UART.
 	UARTEnable(UART1_BASE);
 
+	SlipSerialtimeout = timeout;
 
 	xTxMutex = xSemaphoreCreateMutex();
 	//vSemaphoreCreateBinary(xTxMutex); //- from interrupt
@@ -82,17 +83,15 @@ signed portBASE_TYPE SlipSerialInit( unsigned portBASE_TYPE priority, unsigned l
 
 }
 
-//! odeslání ukonèovacího znaku
 void SlipEnd( void)
 {
 	UARTCharPut(UART1_BASE,SLIP_END);
 }
 
-//! odeslání bufferu jako slip paket
 int SlipSend(char id, char * data, int len)
 {
 	int temp = len;
-	if( xSemaphoreTake( xTxMutex, ( portTickType ) 100 ) != pdTRUE )
+	if( xSemaphoreTake( xTxMutex, ( portTickType ) SlipSerialtimeout ) != pdTRUE )
 	{
 		return -1; //error - mutex expiration
 	}
@@ -142,7 +141,6 @@ int SlipSend(char id, char * data, int len)
 }
 
 
-//! funkce volaná pøi pøijmu znaku
 void UART1_IRQHandler( void)
 {
 	signed portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
@@ -170,6 +168,7 @@ void UART1_IRQHandler( void)
 
 	// nuluj pøíznak pøerušení
 	UARTIntClear(UART1_BASE,UART_INT_RX);
+
 #if configUSE_TRACE_FACILITY==1
 	portENTER_CRITICAL();
 	vTraceStoreISREnd();
@@ -178,24 +177,21 @@ void UART1_IRQHandler( void)
 }
 
 //! funkce reprezentující FreeRTOS úlohu SLIP
-void SlipSerial_task( void * param)
-{
+void SlipSerial_task(void * param) {
 	static int received = 0;
 	static int escBefore = 0;
 
-	vTaskDelay(100);
-
 	// nekoneèná smyèka
-	while(1)
+	while (1)
 	{
 		char data;
 		// pøi pøijmu dat frontou zpracuj
-		if( xQueueReceive(xSerialReceive, &data,100 ) == pdTRUE )
+		if (xQueueReceive(xSerialReceive, &data, SlipSerialtimeout ) == pdTRUE)
 		{
-			switch(data)
+			switch (data)
 			{
 			// znaèka konce
-			case  SLIP_END:
+			case SLIP_END:
 				if (received > 0)
 				{
 					//process packet callback
@@ -242,7 +238,6 @@ void SlipSerial_task( void * param)
 					packet_buffer[received++] = data;
 				break;
 			}
-
 		}
 		else
 		{
@@ -250,6 +245,4 @@ void SlipSerial_task( void * param)
 			SlipSerialReceiveTimeout();
 		}
 	}
-
-	//vTaskDelete( NULL );
 }

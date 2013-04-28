@@ -7,7 +7,8 @@
  * \date 2013
  * \defgroup StatusLED StatusLED module
  *
- * This is module indicating a various status of system by the LED flashes.
+ * This module is indicating a various status of system by the LED flashes.
+ * Error type is specified according flash count.
  *
  * */
 
@@ -41,7 +42,7 @@ enum Err
  *
  * Example usage:
  *  \code{c}
- 	// StatusLed module and task initialization
+ 	// StatusLed module and task initialization - this task have low priority
 	if (StatusLEDInit(tskIDLE_PRIORITY +1) != pdPASS)
 	{
 		//there is error inside module initialization!

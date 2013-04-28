@@ -76,8 +76,8 @@
 <hide_menu_item_id id="org.coocox.codebugger.configuration.showPeripheralsAction"/>
 <hide_menu_item_id id="org.coocox.codebugger.configuration.showVariablesAction"/>
 <hide_menu_item_id id="org.coocox.builder.ui.openProjectExplorerAction"/>
-<hide_menu_item_id id="org.eclipse.debug.ui.commands.TerminateAndRelaunch"/>
 <hide_menu_item_id id="org.coocox.codebugger.trace.actions.ShowTraceControlAction"/>
+<hide_menu_item_id id="org.eclipse.debug.ui.commands.TerminateAndRelaunch"/>
 <hide_menu_item_id id="org.coocox.codebugger.configuration.showRegistersAction"/>
 <hide_toolbar_item_id id="org.eclipse.cdt.debug.internal.ui.actions.ToggleInstructionStepModeAction"/>
 <hide_toolbar_item_id id="org.eclipse.ui.edit.text.toggleShowSelectedElementOnly"/>
@@ -264,13 +264,15 @@
 <part id="8"/>
 <part id="9"/>
 <part id="10"/>
+<part id="11"/>
+<part id="12"/>
 </presentation>
 </folder>
 </info>
 </editorArea>
-<editor id="org.eclipse.cdt.ui.editor.CEditor" name="Main.c" partName="Main.c" path="C:/SP2/robotic-vehicle-firmware/Main.c" title="Main.c" tooltip="C:/SP2/robotic-vehicle-firmware/Main.c" workbook="DefaultEditorWorkbook">
+<editor activePart="true" focus="true" id="org.eclipse.cdt.ui.editor.CEditor" name="Main.c" partName="Main.c" path="C:/SP2/robotic-vehicle-firmware/Main.c" title="Main.c" tooltip="C:/SP2/robotic-vehicle-firmware/Main.c" workbook="DefaultEditorWorkbook">
 <input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/robotic-vehicle-firmware/Main.c"/>
-<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="3132" selectionTopPixel="2354"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="4685" selectionTopPixel="3840"/>
 </editor>
 <editor id="org.eclipse.cdt.ui.editor.CEditor" name="SimpleMatrix.c" partName="SimpleMatrix.c" path="C:/SP2/robotic-vehicle-firmware/SimpleMatrix.c" title="SimpleMatrix.c" tooltip="C:/SP2/robotic-vehicle-firmware/SimpleMatrix.c" workbook="DefaultEditorWorkbook">
 <input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/robotic-vehicle-firmware/SimpleMatrix.c"/>
@@ -282,11 +284,11 @@
 </editor>
 <editor id="org.eclipse.cdt.ui.editor.CEditor" name="SlipSerial.h" partName="SlipSerial.h" path="C:/SP2/robotic-vehicle-firmware/SlipSerial.h" title="SlipSerial.h" tooltip="C:/SP2/robotic-vehicle-firmware/SlipSerial.h" workbook="DefaultEditorWorkbook">
 <input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/robotic-vehicle-firmware/SlipSerial.h"/>
-<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="0" selectionTopPixel="0"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="848" selectionTopPixel="361"/>
 </editor>
 <editor id="org.eclipse.cdt.ui.editor.CEditor" name="FreeRTOSConfig.h" partName="FreeRTOSConfig.h" path="C:/SP2/robotic-vehicle-firmware/FreeRTOSConfig.h" title="FreeRTOSConfig.h" tooltip="C:/SP2/robotic-vehicle-firmware/FreeRTOSConfig.h" workbook="DefaultEditorWorkbook">
 <input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/robotic-vehicle-firmware/FreeRTOSConfig.h"/>
-<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="3825" selectionTopPixel="1200"/>
+<editorState selectionHorizontalPixel="0" selectionLength="24" selectionOffset="3882" selectionTopPixel="1200"/>
 </editor>
 <editor id="org.eclipse.cdt.ui.editor.CEditor" name="trcConfig.h" partName="trcConfig.h" path="C:/SP2/robotic-vehicle-firmware/trcConfig.h" title="trcConfig.h" tooltip="C:/SP2/robotic-vehicle-firmware/trcConfig.h" workbook="DefaultEditorWorkbook">
 <input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/robotic-vehicle-firmware/trcConfig.h"/>
@@ -296,21 +298,29 @@
 <input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/robotic-vehicle-firmware/FreeRTOS/tasks.c"/>
 <editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="78949" selectionTopPixel="46680"/>
 </editor>
-<editor id="org.eclipse.cdt.ui.editor.CEditor" name="heap_2.c" partName="heap_2.c" path="C:/SP2/robotic-vehicle-firmware/FreeRTOS/heap_2.c" title="heap_2.c" tooltip="C:/SP2/robotic-vehicle-firmware/FreeRTOS/heap_2.c" workbook="DefaultEditorWorkbook">
-<input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/robotic-vehicle-firmware/FreeRTOS/heap_2.c"/>
-<editorState selectionHorizontalPixel="0" selectionLength="19" selectionOffset="6000" selectionTopPixel="1950"/>
-</editor>
-<editor activePart="true" focus="true" id="org.eclipse.cdt.ui.editor.CEditor" name="MotorControl.c" partName="MotorControl.c" path="C:/SP2/robotic-vehicle-firmware/MotorControl.c" title="MotorControl.c" tooltip="C:/SP2/robotic-vehicle-firmware/MotorControl.c" workbook="DefaultEditorWorkbook">
+<editor id="org.eclipse.cdt.ui.editor.CEditor" name="MotorControl.c" partName="MotorControl.c" path="C:/SP2/robotic-vehicle-firmware/MotorControl.c" title="MotorControl.c" tooltip="C:/SP2/robotic-vehicle-firmware/MotorControl.c" workbook="DefaultEditorWorkbook">
 <input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/robotic-vehicle-firmware/MotorControl.c"/>
-<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="5563" selectionTopPixel="3991"/>
+<editorState selectionHorizontalPixel="0" selectionLength="2" selectionOffset="8249" selectionTopPixel="4814"/>
 </editor>
 <editor id="org.eclipse.cdt.ui.editor.CEditor" name="MotorControl.h" partName="MotorControl.h" path="C:/SP2/robotic-vehicle-firmware/MotorControl.h" title="MotorControl.h" tooltip="C:/SP2/robotic-vehicle-firmware/MotorControl.h" workbook="DefaultEditorWorkbook">
 <input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/robotic-vehicle-firmware/MotorControl.h"/>
-<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="1043" selectionTopPixel="300"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="300" selectionTopPixel="0"/>
 </editor>
 <editor id="org.eclipse.cdt.ui.editor.CEditor" name="Main.h" partName="Main.h" path="C:/SP2/robotic-vehicle-firmware/Main.h" title="Main.h" tooltip="C:/SP2/robotic-vehicle-firmware/Main.h" workbook="DefaultEditorWorkbook">
 <input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/robotic-vehicle-firmware/Main.h"/>
-<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="580" selectionTopPixel="0"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="1960" selectionTopPixel="1694"/>
+</editor>
+<editor id="org.eclipse.cdt.ui.editor.CEditor" name="StatusLED.c" partName="StatusLED.c" path="C:/SP2/robotic-vehicle-firmware/StatusLED.c" title="StatusLED.c" tooltip="C:/SP2/robotic-vehicle-firmware/StatusLED.c" workbook="DefaultEditorWorkbook">
+<input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/robotic-vehicle-firmware/StatusLED.c"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="0" selectionTopPixel="0"/>
+</editor>
+<editor id="org.eclipse.cdt.ui.editor.CEditor" name="StatusLED.h" partName="StatusLED.h" path="C:/SP2/robotic-vehicle-firmware/StatusLED.h" title="StatusLED.h" tooltip="C:/SP2/robotic-vehicle-firmware/StatusLED.h" workbook="DefaultEditorWorkbook">
+<input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/robotic-vehicle-firmware/StatusLED.h"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="1505" selectionTopPixel="60"/>
+</editor>
+<editor id="org.eclipse.cdt.ui.editor.CEditor" name="Regulator.c" partName="Regulator.c" path="C:/SP2/robotic-vehicle-firmware/Regulator.c" title="Regulator.c" tooltip="C:/SP2/robotic-vehicle-firmware/Regulator.c" workbook="DefaultEditorWorkbook">
+<input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/robotic-vehicle-firmware/Regulator.c"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="1197" selectionTopPixel="341"/>
 </editor>
 </editors>
 <views>
@@ -318,12 +328,12 @@
 <viewState/>
 </view>
 <view id="org.coocox.builder.ui.views.ProjectView" partName="Project">
-<viewState CommonNavigator.LINKING_ENABLED="0" horizontalPosition="0" org.eclipse.ui.navigator.resources.workingSets.showTopLevelWorkingSets="0" verticalPosition="12">
+<viewState CommonNavigator.LINKING_ENABLED="0" horizontalPosition="0" org.eclipse.ui.navigator.resources.workingSets.showTopLevelWorkingSets="0" verticalPosition="16">
 <expanded>
 <element path="/robotic-vehicle-firmware"/>
 </expanded>
 <selection>
-<element path="/robotic-vehicle-firmware/Main.h"/>
+<element path="/robotic-vehicle-firmware/Regulator.c"/>
 </selection>
 </viewState>
 </view>
@@ -332,12 +342,6 @@
 </view>
 <view id="org.coocox.codebugger.trace.ui.traceview" partName="Semihosting">
 <viewState/>
-</view>
-<view id="org.eclipse.search.ui.views.SearchView" partName="Search">
-<viewState isPinned="false">
-<view IMemento.internal.id="org.eclipse.search.text.FileSearchResultPage" org.eclipse.search.lastActivation="1" org.eclipse.search.resultpage.layout="2" org.eclipse.search.resultpage.limit="1000" org.eclipse.search.resultpage.sorting="2"/>
-<view IMemento.internal.id="" org.eclipse.search.lastActivation="0"/>
-</viewState>
 </view>
 <view id="org.eclipse.debug.ui.DebugView" partName="Debug">
 <viewState/>
@@ -382,8 +386,8 @@
 <hide_menu_item_id id="org.coocox.codebugger.configuration.showPeripheralsAction"/>
 <hide_menu_item_id id="org.coocox.codebugger.configuration.showVariablesAction"/>
 <hide_menu_item_id id="org.coocox.builder.ui.openProjectExplorerAction"/>
-<hide_menu_item_id id="org.eclipse.debug.ui.commands.TerminateAndRelaunch"/>
 <hide_menu_item_id id="org.coocox.codebugger.trace.actions.ShowTraceControlAction"/>
+<hide_menu_item_id id="org.eclipse.debug.ui.commands.TerminateAndRelaunch"/>
 <hide_menu_item_id id="org.coocox.codebugger.configuration.showRegistersAction"/>
 <hide_toolbar_item_id id="org.eclipse.cdt.debug.internal.ui.actions.ToggleInstructionStepModeAction"/>
 <hide_toolbar_item_id id="org.eclipse.ui.edit.text.toggleShowSelectedElementOnly"/>
@@ -391,7 +395,6 @@
 <view id="org.coocox.component.ui.ComponentView"/>
 <view id="org.coocox.builder.ui.views.ProjectView"/>
 <view id="org.eclipse.ui.console.ConsoleView"/>
-<view id="org.eclipse.search.ui.views.SearchView"/>
 <view id="org.eclipse.ui.views.ContentOutline"/>
 <fastViewBars/>
 <layout>
@@ -413,10 +416,9 @@
 <info folder="true" part="org.eclipse.ui.internal.ViewStack@baa8f1" ratio="0.73441106" ratioLeft="636" ratioRight="230" relationship="4" relative="org.eclipse.ui.internal.ViewStack@d103f6">
 <folder activePageID="org.eclipse.ui.console.ConsoleView" appearance="2" expanded="2">
 <page content="org.eclipse.ui.console.ConsoleView" label="Console"/>
-<page content="org.eclipse.search.ui.views.SearchView" label="Search"/>
+<page content="org.eclipse.search.ui.views.SearchView" label="LabelNotFound"/>
 <presentation id="org.eclipse.ui.presentations.WorkbenchPresentationFactory">
 <part id="0"/>
-<part id="1"/>
 </presentation>
 </folder>
 </info>
@@ -552,169 +554,169 @@
 <workingSets/>
 <navigationHistory>
 <editors>
-<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/Main.c"/>
-<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/SimpleMatrix.c"/>
-<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/SimpleMatrix.h"/>
-<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/FreeRTOSConfig.h"/>
-<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/trcConfig.h"/>
-<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/Hooks.c"/>
-<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/FreeRTOS/heap_2.c"/>
-<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/FreeRTOS/tasks.c"/>
-<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/Main.c"/>
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/MotorControl.c"/>
-<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/SlipSerial.h"/>
+<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/Main.h"/>
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/MotorControl.h"/>
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/Main.h"/>
+<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/FreeRTOSConfig.h"/>
+<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/FreeRTOS/heap_2.c"/>
+<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/Main.c"/>
+<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/trcConfig.h"/>
+<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/FreeRTOS/tasks.c"/>
+<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/SlipSerial.h"/>
+<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/StatusLED.c"/>
+<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/StatusLED.h"/>
+<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/robotic-vehicle-firmware/Regulator.c"/>
 </editors>
-<item historyLabel="SimpleMatrix.c" index="1">
-<position info="not_deleted" x="5788" y="0"/>
-</item>
-<item historyLabel="SimpleMatrix.c" index="1">
-<position info="not_deleted" x="5541" y="0"/>
-</item>
-<item historyLabel="SimpleMatrix.h" index="2">
-<position info="not_deleted" x="418" y="11"/>
-</item>
-<item historyLabel="SimpleMatrix.c" index="1">
-<position info="not_deleted" x="5541" y="0"/>
-</item>
-<item historyLabel="Main.c" index="0">
-<position info="not_deleted" x="3301" y="0"/>
-</item>
-<item historyLabel="FreeRTOSConfig.h" index="3">
-<position info="not_deleted" x="3908" y="0"/>
-</item>
-<item historyLabel="trcConfig.h" index="4">
-<position info="not_deleted" x="0" y="0"/>
-</item>
-<item historyLabel="Main.c" index="0">
-<position info="not_deleted" x="3301" y="0"/>
-</item>
-<item historyLabel="Main.c" index="0">
-<position info="not_deleted" x="3988" y="0"/>
-</item>
-<item historyLabel="Hooks.c" index="5">
-<position info="not_deleted" x="561" y="0"/>
-</item>
-<item historyLabel="Main.c" index="0">
-<position info="not_deleted" x="3509" y="0"/>
-</item>
-<item historyLabel="FreeRTOSConfig.h" index="3">
-<position info="not_deleted" x="3825" y="0"/>
-</item>
-<item historyLabel="heap_2.c" index="6">
-<position info="not_deleted" x="6000" y="19"/>
-</item>
-<item historyLabel="Main.c" index="0">
-<position info="not_deleted" x="3988" y="0"/>
-</item>
-<item historyLabel="Main.c" index="0">
-<position info="not_deleted" x="4049" y="0"/>
-</item>
-<item historyLabel="Main.c" index="0">
-<position info="not_deleted" x="4166" y="0"/>
-</item>
-<item historyLabel="Main.c" index="0">
-<position info="not_deleted" x="4293" y="0"/>
-</item>
-<item historyLabel="Main.c" index="0">
-<position info="not_deleted" x="4446" y="0"/>
-</item>
-<item historyLabel="Main.c" index="0">
-<position info="not_deleted" x="4584" y="0"/>
-</item>
-<item historyLabel="Main.c" index="0">
-<position info="not_deleted" x="4679" y="0"/>
-</item>
-<item historyLabel="Main.c" index="0">
-<position info="not_deleted" x="4891" y="0"/>
-</item>
-<item historyLabel="Main.c" index="0">
-<position info="not_deleted" x="4974" y="0"/>
-</item>
-<item historyLabel="Hooks.c" index="5">
-<position info="not_deleted" x="666" y="0"/>
-</item>
-<item historyLabel="Main.c" index="0">
-<position info="not_deleted" x="4974" y="0"/>
-</item>
-<item historyLabel="Main.c" index="0">
-<position info="not_deleted" x="3885" y="0"/>
-</item>
-<item historyLabel="Main.c" index="0">
-<position info="not_deleted" x="3988" y="0"/>
-</item>
-<item historyLabel="Main.c" index="0">
-<position info="not_deleted" x="4049" y="0"/>
-</item>
-<item historyLabel="Main.c" index="0">
-<position info="not_deleted" x="4166" y="0"/>
-</item>
-<item historyLabel="Main.c" index="0">
-<position info="not_deleted" x="4293" y="0"/>
-</item>
-<item historyLabel="Main.c" index="0">
-<position info="not_deleted" x="4446" y="0"/>
-</item>
-<item historyLabel="Main.c" index="0">
-<position info="not_deleted" x="4584" y="0"/>
-</item>
-<item historyLabel="Main.c" index="0">
-<position info="not_deleted" x="4679" y="0"/>
-</item>
-<item historyLabel="Main.c" index="0">
-<position info="not_deleted" x="4891" y="0"/>
-</item>
-<item historyLabel="Main.c" index="0">
-<position info="not_deleted" x="4974" y="0"/>
-</item>
-<item historyLabel="tasks.c" index="7">
-<position info="not_deleted" x="78949" y="0"/>
-</item>
-<item historyLabel="Main.c" index="8">
-<position info="not_deleted" x="3519" y="0"/>
-</item>
-<item historyLabel="MotorControl.c" index="9">
-<position info="not_deleted" x="9065" y="0"/>
-</item>
-<item historyLabel="Main.c" index="8">
-<position info="not_deleted" x="3519" y="0"/>
-</item>
-<item historyLabel="SlipSerial.h" index="10">
-<position info="not_deleted" x="0" y="0"/>
-</item>
-<item historyLabel="MotorControl.c" index="9">
-<position info="not_deleted" x="9188" y="0"/>
-</item>
-<item historyLabel="MotorControl.h" index="11">
-<position info="not_deleted" x="554" y="28"/>
-</item>
-<item historyLabel="MotorControl.c" index="9">
-<position info="not_deleted" x="9230" y="0"/>
-</item>
-<item historyLabel="MotorControl.h" index="11">
-<position info="not_deleted" x="376" y="0"/>
-</item>
-<item historyLabel="MotorControl.c" index="9">
-<position info="not_deleted" x="9212" y="22"/>
-</item>
-<item historyLabel="MotorControl.h" index="11">
-<position info="not_deleted" x="1043" y="0"/>
-</item>
-<item historyLabel="MotorControl.c" index="9">
-<position info="not_deleted" x="10237" y="25"/>
-</item>
-<item historyLabel="MotorControl.c" index="9">
+<item historyLabel="MotorControl.c" index="0">
 <position info="not_deleted" x="9751" y="0"/>
 </item>
-<item historyLabel="MotorControl.c" index="9">
+<item historyLabel="MotorControl.c" index="0">
 <position info="not_deleted" x="9065" y="0"/>
 </item>
-<item historyLabel="Main.h" index="12">
+<item historyLabel="Main.h" index="1">
 <position info="not_deleted" x="580" y="0"/>
 </item>
-<item active="true" historyLabel="MotorControl.c" index="9">
+<item historyLabel="MotorControl.c" index="0">
 <position info="not_deleted" x="9065" y="0"/>
+</item>
+<item historyLabel="MotorControl.h" index="2">
+<position info="not_deleted" x="5383" y="0"/>
+</item>
+<item historyLabel="MotorControl.c" index="0">
+<position info="not_deleted" x="10271" y="0"/>
+</item>
+<item historyLabel="MotorControl.h" index="2">
+<position info="not_deleted" x="5383" y="0"/>
+</item>
+<item historyLabel="MotorControl.h" index="2">
+<position info="not_deleted" x="825" y="0"/>
+</item>
+<item historyLabel="MotorControl.h" index="2">
+<position info="not_deleted" x="842" y="0"/>
+</item>
+<item historyLabel="MotorControl.h" index="2">
+<position info="not_deleted" x="937" y="0"/>
+</item>
+<item historyLabel="MotorControl.h" index="2">
+<position info="not_deleted" x="951" y="0"/>
+</item>
+<item historyLabel="MotorControl.h" index="2">
+<position info="not_deleted" x="1039" y="0"/>
+</item>
+<item historyLabel="MotorControl.h" index="2">
+<position info="not_deleted" x="1054" y="0"/>
+</item>
+<item historyLabel="MotorControl.h" index="2">
+<position info="not_deleted" x="1149" y="0"/>
+</item>
+<item historyLabel="MotorControl.h" index="2">
+<position info="not_deleted" x="1119" y="0"/>
+</item>
+<item historyLabel="MotorControl.c" index="0">
+<position info="not_deleted" x="10248" y="1"/>
+</item>
+<item historyLabel="MotorControl.h" index="2">
+<position info="not_deleted" x="1119" y="0"/>
+</item>
+<item historyLabel="MotorControl.c" index="0">
+<position info="not_deleted" x="10248" y="1"/>
+</item>
+<item historyLabel="MotorControl.c" index="0">
+<position info="not_deleted" x="8249" y="2"/>
+</item>
+<item historyLabel="MotorControl.h" index="2">
+<position info="not_deleted" x="1119" y="0"/>
+</item>
+<item historyLabel="Main.h" index="3">
+<position info="not_deleted" x="2324" y="0"/>
+</item>
+<item historyLabel="FreeRTOSConfig.h" index="4">
+<position info="not_deleted" x="3882" y="24"/>
+</item>
+<item historyLabel="MotorControl.c" index="0">
+<position info="not_deleted" x="8249" y="2"/>
+</item>
+<item historyLabel="Main.h" index="3">
+<position info="not_deleted" x="1864" y="0"/>
+</item>
+<item historyLabel="heap_2.c" index="5">
+<position info="not_deleted" x="6000" y="19"/>
+</item>
+<item historyLabel="Main.h" index="3">
+<position info="not_deleted" x="1560" y="0"/>
+</item>
+<item historyLabel="MotorControl.c" index="0">
+<position info="not_deleted" x="8249" y="2"/>
+</item>
+<item historyLabel="heap_2.c" index="5">
+<position info="not_deleted" x="6000" y="19"/>
+</item>
+<item historyLabel="MotorControl.c" index="0">
+<position info="not_deleted" x="8249" y="2"/>
+</item>
+<item historyLabel="MotorControl.h" index="2">
+<position info="not_deleted" x="5324" y="0"/>
+</item>
+<item historyLabel="Main.h" index="3">
+<position info="not_deleted" x="1560" y="0"/>
+</item>
+<item historyLabel="MotorControl.h" index="2">
+<position info="not_deleted" x="5187" y="148"/>
+</item>
+<item historyLabel="Main.h" index="3">
+<position info="not_deleted" x="1560" y="0"/>
+</item>
+<item historyLabel="Main.c" index="6">
+<position info="not_deleted" x="3815" y="1127"/>
+</item>
+<item historyLabel="Main.h" index="3">
+<position info="not_deleted" x="1960" y="0"/>
+</item>
+<item historyLabel="MotorControl.h" index="2">
+<position info="not_deleted" x="300" y="0"/>
+</item>
+<item historyLabel="Main.c" index="6">
+<position info="not_deleted" x="3006" y="0"/>
+</item>
+<item historyLabel="FreeRTOSConfig.h" index="4">
+<position info="not_deleted" x="3882" y="24"/>
+</item>
+<item historyLabel="trcConfig.h" index="7">
+<position info="not_deleted" x="0" y="0"/>
+</item>
+<item historyLabel="tasks.c" index="8">
+<position info="not_deleted" x="78949" y="0"/>
+</item>
+<item historyLabel="SlipSerial.h" index="9">
+<position info="not_deleted" x="848" y="0"/>
+</item>
+<item historyLabel="StatusLED.c" index="10">
+<position info="not_deleted" x="0" y="0"/>
+</item>
+<item historyLabel="StatusLED.h" index="11">
+<position info="not_deleted" x="1505" y="0"/>
+</item>
+<item historyLabel="Main.c" index="6">
+<position info="not_deleted" x="3006" y="0"/>
+</item>
+<item historyLabel="Regulator.c" index="12">
+<position info="not_deleted" x="1197" y="0"/>
+</item>
+<item historyLabel="StatusLED.c" index="10">
+<position info="not_deleted" x="0" y="0"/>
+</item>
+<item historyLabel="tasks.c" index="8">
+<position info="not_deleted" x="78949" y="0"/>
+</item>
+<item historyLabel="trcConfig.h" index="7">
+<position info="not_deleted" x="0" y="0"/>
+</item>
+<item historyLabel="SlipSerial.h" index="9">
+<position info="not_deleted" x="848" y="0"/>
+</item>
+<item active="true" historyLabel="Main.c" index="6">
+<position info="not_deleted" x="3006" y="0"/>
 </item>
 </navigationHistory>
 <input factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/" type="8"/>
@@ -723,6 +725,15 @@
 <actionBarAdvisor/>
 </window>
 <mruList>
+<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="Regulator.c" tooltip="robotic-vehicle-firmware/Regulator.c">
+<persistable path="/robotic-vehicle-firmware/Regulator.c"/>
+</file>
+<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="StatusLED.h" tooltip="robotic-vehicle-firmware/StatusLED.h">
+<persistable path="/robotic-vehicle-firmware/StatusLED.h"/>
+</file>
+<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="StatusLED.c" tooltip="robotic-vehicle-firmware/StatusLED.c">
+<persistable path="/robotic-vehicle-firmware/StatusLED.c"/>
+</file>
 <file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="Main.h" tooltip="robotic-vehicle-firmware/Main.h">
 <persistable path="/robotic-vehicle-firmware/Main.h"/>
 </file>
@@ -759,15 +770,6 @@
 </file>
 <file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="port.c" tooltip="robotic-vehicle-firmware/FreeRTOS/port.c">
 <persistable path="/robotic-vehicle-firmware/FreeRTOS/port.c"/>
-</file>
-<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="SimpleMatrix.h" tooltip="robotic-vehicle-firmware/SimpleMatrix.h">
-<persistable path="/robotic-vehicle-firmware/SimpleMatrix.h"/>
-</file>
-<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="SimpleMatrix.c" tooltip="robotic-vehicle-firmware/SimpleMatrix.c">
-<persistable path="/robotic-vehicle-firmware/SimpleMatrix.c"/>
-</file>
-<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="pwm.c" tooltip="robotic-vehicle-firmware/lm3slib/driverlib/pwm.c">
-<persistable path="/robotic-vehicle-firmware/lm3slib/driverlib/pwm.c"/>
 </file>
 </mruList>
 </workbench>

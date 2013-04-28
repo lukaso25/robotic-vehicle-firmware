@@ -36,19 +36,33 @@ inline void matFillTestPattern(matrixType *res)
 
 void matTest( void)
 {
-	/*matrixType* a;
+
+	matrixType* a;
 	matrixType* b;
 	matrixType* c;
 
-	a = matAlloc(3,3);
-	b = matAlloc(3,3);
-	c = matAlloc(3,3);
+	a = matAlloc(2,3);
+	b = matAlloc(3,2);
+	c = matAlloc(2,2);
 
 	matEye(a,2);
 	matFill(b,3);
 
-	matAdd(c,a,b);*/
+	matPrint(a);
+	matPrint(b);
+	matMul(c,a,b);
+	matPrint(c);
 
+	matPrint(a);
+	CELL(a,0,0) = 10.0;
+	CELL(a,1,2) = CELL(a,0,0);
+	matPrint(a);
+
+	matFree(a);
+	matFree(b);
+	matFree(c);
+
+	/*
 	matrixType* a;
 	matrixType* b;
 	matrixType* c;
@@ -74,7 +88,7 @@ void matTest( void)
 
 	matMul3(e,a,b,d);
 	matPrint(e);
-
+	*/
 }
 
 #else
@@ -304,5 +318,21 @@ inline void matEye(matrixType* res, matrixValType value)
 				res->mat[j+(i*res->n)] = 0;
 		}
 	}
+}
+
+inline matrixSizeType matInv(matrixType* res, matrixType* a)
+{
+#ifdef MATRIX_CHECK_DIMENSIONS
+	if ((a->m != a->n)||(res->m!=res->n))
+		return -1;
+#endif
+	// initially, resulting matrix is diagonal
+	//mathEye(res,1);??
+
+	// gauss jordan elimination method for math [ a | res ]
+
+
+
+	return 0;
 }
 

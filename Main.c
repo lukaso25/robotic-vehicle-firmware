@@ -31,7 +31,6 @@ void vSystemInit( void)
 
 //! temporary motor mode
 char motorMode = MOTOR_RUNNING;
-
 void SlipSerialProcessPacket(char packet_buffer[], int length)
 {
 	//packet arrived
@@ -89,21 +88,18 @@ void ControlTask_task( void * param)
 #endif
 	rlseType ident1;
 	rlseType ident2;
+	regParamType regpar;
 
-	rmnc_init(&ident1);
-	rmnc_init(&ident2);
+	rlse_init(&ident1);
+	rlse_init(&ident2);
 
 	while(1)
 	{
-
-
-
 		if( MotorControlWaitData(50) == pdTRUE )
 		{
 			short regvalues[6];
 			unsigned short values[3];
 			char timestamp = 1;
-			//unsigned char temp;
 
 			//acc values
 			SlipSend(ID_ACC_STRUCT,(char *) &accData, 2*sizeof(short int));
@@ -122,41 +118,51 @@ void ControlTask_task( void * param)
 
 			SlipSend(ID_REG,(char *) &regvalues, sizeof(short[6]));
 
-			//data ADC
+			//data from ADC
 			values[0] = myDrive.mot1.current_act;
 			values[1] = myDrive.mot2.current_act;
 			values[2] = myDrive.mot2.reg.batt_voltage;
 
+			//data from regulator
 			SlipSend(ID_ADC,(char *) &values, sizeof(unsigned short[3]));
 
+			//motor control state
 			SlipSend(ID_MOTOR_MODE, (char *) &myDrive.state, sizeof(enum MotorState) );
 
+			// identified parameters
 			SlipSend(ID_IDENT_PARAMS, (char *) &ident1.th->mat[0], 4*sizeof(float));
 			SlipSend(ID_IDENT_PARAMS2, (char *) &ident2.th->mat[0], 4*sizeof(float));
 
 			//timestamp
 			SlipSend(ID_TIME_STAMP,(char *) &timestamp, sizeof(char));
 
-			rmnc_update( &ident1, (float) regvalues[0],(float) regvalues[2], (regvalues[0]!= 0));
-			rmnc_update( &ident2, (float) regvalues[1],(float) regvalues[3], (regvalues[1]!= 0));
+			rlse_update( &ident1, (float) regvalues[0],(float) regvalues[2], ((regvalues[4]>200)||(regvalues[4]<-200)));
+			//rmnc_update( &ident2, (float) regvalues[1],(float) regvalues[3], (regvalues[1]!= 0));
+
+			compute_params(ident1.th,&regpar);
+
+			if ((regpar.Kr > 0.1) && (regpar.Kr < 3))
+				{
+				RegulatorSetPID(&myDrive.mot1.reg,regpar.Kr,regpar.Ti,regpar.Td);
+				RegulatorSetPID(&myDrive.mot2.reg,regpar.Kr,regpar.Ti,regpar.Td);
+				}
 
 		}
 		else
 		{
 			//timeout
-			//data outage
 		}
 
 #if configUSE_TRACE_FACILITY==1
-		//každé 2s
+		// TASK LIST  - this block communication
 		taskListPre--;
 		if (taskListPre == 0)
 		{
 			taskListPre = 100;
 
 			char tasklist[256];
-			vTaskList((signed char*)tasklist);
-			SlipSend(ID_TASKLIST,tasklist, strlen(tasklist));
+			//vTaskList((signed char*)tasklist);
+			//SlipSend(ID_TASKLIST,tasklist, strlen(tasklist));
 		}
 #endif
 
@@ -176,8 +182,6 @@ int main(void)
 	//! inicializace základních periferií systému
 	vSystemInit();
 
-
-
 	//! HeartBeat úloha indikaèní diody
 	if (StatusLEDInit(tskIDLE_PRIORITY+1) != pdPASS)
 	{
@@ -185,7 +189,7 @@ int main(void)
 	}
 
 	//! SlipSerial komunikace po seriové lince
-	if (SlipSerialInit(tskIDLE_PRIORITY +2, 57600, 200) != pdPASS)
+	if (SlipSerialInit(tskIDLE_PRIORITY +2, 57600, 600) != pdPASS)
 	{
 		//error
 	}
@@ -214,7 +218,6 @@ int main(void)
 		//error
 	}
 
-
 #if configUSE_TRACE_FACILITY==1
 	//! FreeRTOs kernel object trace record start
 	if (uiTraceStart() != 1)
@@ -225,7 +228,6 @@ int main(void)
 	vTaskStartScheduler();
 
 	//! never entering code
-	GPIOPinWrite(LED_RED_PORT, LED_RED, ~LED_RED);
 	while(1){};
 	return 0;
 }

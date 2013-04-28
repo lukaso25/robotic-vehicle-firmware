@@ -280,6 +280,7 @@ void MotorControl_task( void * param)
 	char lastMotor = 0;
 
 	// dummy delay
+	//TODO: odstranit - resp upravit tak, aby nebylo potøeba
 	vTaskDelay(100);
 
 	while(1)
@@ -294,70 +295,48 @@ void MotorControl_task( void * param)
 			{
 				pwmQue = xMotorPWMQ1;
 				motor =  &myDrive.mot1;
-				switch (myDrive.state)
-				{
-				case MOTOR_RUNNING:
-					pwm = RegulatorAction(&motor->reg, speed.value);
-					break;
-				case MOTOR_MANUAL:
-					motor->reg.measured = speed.value;
-					motor->reg.action = pwm = myDrive.mot1.reg.desired;
-					break;
-				case MOTOR_HARMONIC_BALANCE:
-					motor->reg.measured = speed.value;
-					//! test Metoda harmonické rovnováhy
-					if (speed.value>0)
-					{
-						motor->reg.action = pwm = -HARMONIC_BALANCE_RELAY_LIMIT;
-					}
-					else
-					{
-						motor->reg.action = pwm = HARMONIC_BALANCE_RELAY_LIMIT;
-					}
-					//myDrive.mot1.reg.action = pwm = myDrive.mot1.reg.desired;
-					break;
-				case MOTOR_FAILURE:
-				case MOTOR_STOP:
-				case MOTOR_SHUTDOWN:
-				default://error
-					pwm = 0;
-					break;
-				}
-
-				if (xQueueSend(pwmQue, &pwm, 10) != pdTRUE)
-				{
-					MotorControlSetState(MOTOR_FAILURE);
-					SetError(ERROR_MOTOR);
-				}
 			}
 			else if (lastMotor == MOTOR_2)
 			{
-				switch (myDrive.state)
-				{
-				case MOTOR_RUNNING:
-					pwm = RegulatorAction(&myDrive.mot2.reg, speed.value);
-					break;
-				case MOTOR_MANUAL:
-					myDrive.mot2.reg.measured = speed.value;
-					myDrive.mot2.reg.action = pwm = myDrive.mot2.reg.desired;
-					break;
-				case MOTOR_HARMONIC_BALANCE:
-					break;
-				case MOTOR_FAILURE:
-				case MOTOR_STOP:
-				case MOTOR_SHUTDOWN:
-				default://error
-					pwm = 0;
-					break;
-				}
-
-				if (xQueueSend(xMotorPWMQ2, &pwm, 10) != pdTRUE)
-				{
-					MotorControlSetState(MOTOR_FAILURE);
-					SetError(ERROR_MOTOR);
-				}
+				pwmQue = xMotorPWMQ2;
+				motor =  &myDrive.mot2;
 			}
 			else
+			{
+				MotorControlSetState(MOTOR_FAILURE);
+				SetError(ERROR_MOTOR);
+			}
+
+			switch (myDrive.state)
+			{
+			case MOTOR_RUNNING:
+				pwm = RegulatorAction(&motor->reg, speed.value);
+				break;
+			case MOTOR_MANUAL:
+				motor->reg.measured = speed.value;
+				motor->reg.action = pwm = myDrive.mot1.reg.desired;
+				break;
+			case MOTOR_HARMONIC_BALANCE:
+				motor->reg.measured = speed.value;
+				//! test Metoda harmonické rovnováhy
+				if (speed.value>0)
+				{
+					motor->reg.action = pwm = -HARMONIC_BALANCE_RELAY_LIMIT;
+				}
+				else
+				{
+					motor->reg.action = pwm = HARMONIC_BALANCE_RELAY_LIMIT;
+				}
+				break;
+			case MOTOR_FAILURE:
+			case MOTOR_STOP:
+			case MOTOR_SHUTDOWN:
+			default://error
+				pwm = 0;
+				break;
+			}
+
+			if (xQueueSend(pwmQue, &pwm, 10) != pdTRUE)
 			{
 				MotorControlSetState(MOTOR_FAILURE);
 				SetError(ERROR_MOTOR);
@@ -380,7 +359,7 @@ void MotorControl_task( void * param)
 			//! kontrola Fail statusu H-mostù
 
 			//! kontrola stavu baterie
-			if (myDrive.mot2.reg.batt_voltage < 500)
+			if (myDrive.mot2.reg.batt_voltage < VOLTAGE2ADC(4.7))
 			{
 				SetError(ERROR_BATT);
 				//MotorControlSetState(MOTOR_SHUTDOWN); // pro snížení spotøeby
@@ -390,16 +369,10 @@ void MotorControl_task( void * param)
 
 			if( xSemaphoreGive( xWaitData ) != pdTRUE )
 			{
-				// We would expect this call to fail because we cannot give
-				// a semaphore without first "taking" it!
+				// there is no
 			}
 		}
 	}
-
-	//kontrola funkce  - faulty od driverù, errory encodérù, proudy,  pøipojení motorù(pomìr odchylky a otáèek (jejich prùmìrù))
-
-	//vTaskDelete( NULL );
-
 }
 
 void QEI0_IRQHandler( void)

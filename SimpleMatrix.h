@@ -3,7 +3,38 @@
  * \date 2013
  * \defgroup SimpleMatrix SimpleMatrix module
  *
- * This module contain function and definition for basic matrix algebra operations. Memory for matrixes is dynamicly alocated.
+ * This module contain function for basic matrix operations. Memory for matrixes is dynamicly alocated.
+ *
+ * Cells are saved in linear array by rows.
+ *
+ *
+ * * Example usage:
+ *  \code{c}
+	matrixType* a;
+	matrixType* b;
+	matrixType* c;
+
+	a = matAlloc(2,3);
+	b = matAlloc(3,2);
+	c = matAlloc(2,2);
+
+	matEye(a,2);
+	matFill(b,3);
+
+	matPrint(a);
+	matPrint(b);
+	matMul(c,a,b);
+	matPrint(c);
+
+	matPrint(a);
+	CELL(a,0,0) = 10.0;
+	CELL(a,1,2) = CELL(a,0,0);
+	matPrint(a);
+
+	matFree(a);
+	matFree(b);
+	matFree(c);
+	\endcode
  *
  * */
 
@@ -13,16 +44,16 @@
 // for NULL definition
 #include <stdlib.h>
 
-//! this is used to define precision and range of values processed by matrix operations (generally float/integer)
+//! this is used to define precision and range of values processed by matrix operations (generally float/integer) \ingroup SimpleMatrix
 typedef float  matrixValType;
 
-//! this is base processor type used to integer values (Cortex-M3 is long)
+//! this is base processor type used to integer values (Cortex-M3 is long) \ingroup SimpleMatrix
 typedef long matrixSizeType;
 
-//! defining this macro, matrix sizes will be checked in matrix multiplication operations
+//! defining this macro, matrix sizes will be checked in matrix multiplication operations \ingroup SimpleMatrix
 #define MATRIX_CHECK_DIMENSIONS
 
-//! this parameter is used to create temporary vector in 3 matrix multiplication, this mechanism should decrease overall memory usage
+//! this parameter is used to create temporary vector in 3 matrix multiplication, this mechanism should decrease overall memory usage \ingroup SimpleMatrix
 #define MATRIX_TEMPORARY_MAX_SIZE (4)
 
 /*! \brief Matrix structure used by this module
@@ -39,6 +70,9 @@ typedef struct matrixTypeStruct
 matrixType;
 
 void matTest( void);
+
+// This macro can be used for cell selection \ingroup SimpleMatrix
+#define CELL(matrix,i,j) (matrix->mat[(j)+((i)*matrix->n)])
 
 /*! \brief This function allocate memory for one matrix with specified dimensions.
  *  \param row This parameter express count of matrix rows, must be >0.

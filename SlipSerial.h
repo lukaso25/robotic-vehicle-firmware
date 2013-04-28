@@ -3,6 +3,9 @@
 
 #include "FreeRTOS.h"
 
+// maximální delka pøíjmaného paketu
+#define MAX_PACKET_LENGH	(128)
+
 enum SLIP_ID
 {
 	ID_ACC_STRUCT = 0x10,

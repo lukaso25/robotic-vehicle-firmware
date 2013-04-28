@@ -38,7 +38,7 @@ short RegulatorAction(struct RegulatorParams * rp, short measurement)
 #endif
 
 	// converter gain correction
-	rp->action = siOut = (short)( flOut ); //* 538.0 / rp->batt_voltage
+	rp->action = siOut = (short)( flOut ) * 538.0 / rp->batt_voltage;
 
 	// output non-linearity saturation model
 	if (siOut >  rp->limit)

@@ -14,12 +14,28 @@
 #include "Regulator.h"
 #include "FreeRTOS.h"
 
-#define MOTOR_PWM_FREQ		(5000) //4000 pro 20 MHz 5 kHz //4000 pro 40MHz a 10kHz
+//! this macro defines PWM frequency in Hz
+#define MOTOR_PWM_FREQ		(5000)
+
+//! this macro define regulator sampling frequency in Hz
 #define SPEED_REG_FREQ		(50)   //pøednastavení QEI èasovaèe pro periodu 20ms (50Hz)
 
+//! this macro define PWM output for harmonic balance test
 #define HARMONIC_BALANCE_RELAY_LIMIT  (1000)
 
 //#define BIPOLAR_PWM_CONTROL
+
+//! this macro convert value from ADC to number in volts (V)
+#define ADC2VOLTAGE(x) (x*(9.617/1023))
+
+//! this macro convert value from ADC to number in mili ampers (mA)
+#define ADC2CURRENT(x) (x*(375/200))
+
+//!this macro convert value in volts (V) into value from ADC
+#define VOLTAGE2ADC(x) (x*1023/9.617)
+
+//!this macro convert value in mili ampers (mA) into value from ADC
+#define CURRENT2ADC(x) (x*200/375)
 
 /*! \brief Available states of MotorControl module
  * \ingroup MotorControl */
@@ -57,25 +73,20 @@ struct SensorActor
 };
 
 /*! \brief This structure holds run-time information and parameters of the motor regulator
- * \ingroup MotorControl */
+ *  \ingroup MotorControl */
 struct MotorControl
 {
 	//! regulator structure for each motor
 	struct RegulatorParams reg;
 
-	//stats
-	//int speed_avg;
-	//short speed_max;
-	//long track;
-
 	//! current consumption
 	unsigned short current_act;
+
 	//! total current consumption
 	unsigned long current_total;
 
-	//! qei decoder error counter
+	//! QEI module error counter
 	short qei_errors;
-
 };
 
 /*! \brief This structure holds run-time information and parameters of the motor regulators and position
@@ -84,6 +95,7 @@ struct DriveBlock
 {
 	//! the first motor structure
 	struct MotorControl mot1;
+
 	//! second motor structure
 	struct MotorControl mot2;
 
@@ -98,7 +110,6 @@ struct DriveBlock
 /*! \brief This structure holds run-time information and parameters of the drive
  * \ingroup MotorControl */
 struct DriveBlock myDrive;
-//struct RegulatorParams myReg;
 
 /*! \brief This function initialize MotorControl module and task
  *
@@ -178,8 +189,6 @@ void MotorControlSetWheelSpeed(signed short v1, signed short v2);
 
 /*! \brief This function can set a speed for differential drive as forward and angular speed.
  *
- *
- *
  * Example usage:
  *  \code{c}
  *  // set new desired speed to 100 mm/s and 200 rad/s ticks per period
@@ -195,8 +204,6 @@ void MotorControlSetSpeed(signed short v, signed short w);
 // FreeRTOS task
 void MotorControl_task( void * param);
 
-
-//BRIDGE 0 => motor L or R ??
 
 #define BRIDGE0_EN				(GPIO_PIN_7)
 #define BRIDGE0_EN_PORT			(GPIO_PORTD_BASE)
@@ -215,7 +222,6 @@ void MotorControl_task( void * param);
 #define BRIDGE1_IN2_PORT		(GPIO_PORTB_BASE)
 #define BRIDGE1_FS				(GPIO_PIN_5)
 #define BRIDGE1_FS_PORT			(GPIO_PORTB_BASE)
-
 
 #define MOTOR_SHIFTER_OE		(GPIO_PIN_7)
 #define MOTOR_SHIFTER_OE_PORT	(GPIO_PORTA_BASE)
