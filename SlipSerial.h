@@ -18,7 +18,16 @@ enum SLIP_ID
 	ID_REG_PARAMS = 0x17,
 	ID_IDENT_PARAMS = 0x18,
 	ID_IDENT_PARAMS2 = 0x19,
+	ID_GENERIC_COMMAND = 0x1A
 };
+
+enum GENERIC_COMMAND_ID
+{
+	COMMAND_NONE = 0x0,
+	COMMAND_ADAPTIVE_REG,
+	COMMAND_FIXED_REG
+};
+
 /*!
  * \brief Funkce volaná pøi korektním pøijmu packetu
  *

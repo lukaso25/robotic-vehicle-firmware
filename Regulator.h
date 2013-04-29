@@ -32,9 +32,11 @@ struct RegulatorParams
 	short desired;
 
 	//! output limit value
-	short limit;
+	unsigned short limit;
 	// value for manual output
 	//short manual;
+
+	float outputScale;
 
 	//!
 	float sum;
@@ -56,10 +58,11 @@ struct RegulatorParams
 	float Kip;
 	//! the derivation filtration coefficient
 	float N;
-
-	//! actual battery voltage
-	unsigned short batt_voltage;
 };
+
+//! this macro define regulator sampling frequency in Hz
+//! \ingroup Regulator
+#define SPEED_REG_FREQ		(50)   //pøednastavení QEI èasovaèe pro periodu 20ms (50Hz)
 
 /*! \brief Available states of MotorControl module
  * \ingroup Regulator */
@@ -107,6 +110,6 @@ void RegulatorSetParam(struct RegulatorParams * rp, float Beta, float Kip, float
  * \ingroup Regulator
  * \param limit symmetric limit of saturation nonlinearity on the output of regulator
  *  */
-void RegulatorSetLimit(struct RegulatorParams * rp, short limit);
+void RegulatorSetScaleLimit(struct RegulatorParams * rp, float outputScale, unsigned short limit);
 
 #endif//__REGULATOR_H__

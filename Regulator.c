@@ -31,14 +31,17 @@ short RegulatorAction(struct RegulatorParams * rp, short measurement)
 	//! TODO konstanta periody regulátoru
 
 	// integration update
-	rp->sum += (rp->Kr * rp->Ti * rp->error) + (rp->Kip * rp->saturationDiff);
+	rp->sum += (rp->Kr * rp->Ti * rp->error) + (rp->Kip * rp->saturationDiff / rp->outputScale);
 
 	// derivation update
-	rp->der = (rp->der * exp((-0.02*rp->N)/rp->Td)) - rp->measured;
+	rp->der = (rp->der * exp((-(1/SPEED_REG_FREQ)*rp->N)/rp->Td)) - rp->measured;
 #endif
 
+	//v tomto místì bude manuální/automatický režim
+
 	// converter gain correction
-	rp->action = siOut = (short)( flOut ) * 538.0 / rp->batt_voltage;
+	//rp->action = siOut = (short)( flOut ) * 538.0 / rp->batt_voltage;
+	rp->action = siOut = (short)( flOut * rp->outputScale);
 
 	// output non-linearity saturation model
 	if (siOut >  rp->limit)
@@ -51,7 +54,6 @@ short RegulatorAction(struct RegulatorParams * rp, short measurement)
 
 	return siOut;
 }
-
 
 void RegulatorSetPID(struct RegulatorParams * rp, float Kr, float Ti, float Td)
 {
@@ -69,10 +71,9 @@ void RegulatorSetParam(struct RegulatorParams * rp, float Beta, float Kip, float
 	rp->N = N;
 }
 
-void RegulatorSetLimit(struct RegulatorParams * rp, short limit)
+void RegulatorSetScaleLimit(struct RegulatorParams * rp, float outputScale, unsigned short limit)
 {
 	// we only transfer values into structure
 	rp->limit = limit;
+	rp->outputScale  = outputScale;
 }
-
-

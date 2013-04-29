@@ -14,28 +14,16 @@
 #include "Regulator.h"
 #include "FreeRTOS.h"
 
-//! this macro defines PWM frequency in Hz
+//! this macro defines PWM frequency in Hz (H-bridge max frequency limiting parameter)
 #define MOTOR_PWM_FREQ		(5000)
 
-//! this macro define regulator sampling frequency in Hz
-#define SPEED_REG_FREQ		(50)   //pøednastavení QEI èasovaèe pro periodu 20ms (50Hz)
+//! maximal mean value voltage
+#define MOTOR_MAX_MEAN_VOLTAGE (6.0)
 
 //! this macro define PWM output for harmonic balance test
 #define HARMONIC_BALANCE_RELAY_LIMIT  (1000)
 
 //#define BIPOLAR_PWM_CONTROL
-
-//! this macro convert value from ADC to number in volts (V)
-#define ADC2VOLTAGE(x) (x*(9.617/1023))
-
-//! this macro convert value from ADC to number in mili ampers (mA)
-#define ADC2CURRENT(x) (x*(375/200))
-
-//!this macro convert value in volts (V) into value from ADC
-#define VOLTAGE2ADC(x) (x*1023/9.617)
-
-//!this macro convert value in mili ampers (mA) into value from ADC
-#define CURRENT2ADC(x) (x*200/375)
 
 /*! \brief Available states of MotorControl module
  * \ingroup MotorControl */
@@ -101,6 +89,9 @@ struct DriveBlock
 
 	//! actual position according to wheel odometry
 	struct Position position;
+
+	//! actual battery voltage
+	unsigned short batt_voltage;
 
 	//! actual Motor control module state
 	enum MotorState state;

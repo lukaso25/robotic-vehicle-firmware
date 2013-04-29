@@ -25,7 +25,7 @@
 
 void vSystemInit( void)
 {
-	//! CLOCK setup to 20 MHz
+	//! CLOCK setup to 20 MHz - base frequency 200MHz
 	SysCtlClockSet(SYSCTL_SYSDIV_10 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_6MHZ);
 }
 
@@ -70,6 +70,10 @@ void SlipSerialProcessPacket(char packet_buffer[], int length)
 			memcpy(&myDrive.mot1.reg.Kr,&packet_buffer[1],20);
 			memcpy(&myDrive.mot2.reg.Kr,&packet_buffer[1],20);
 		}
+		break;
+	case ID_GENERIC_COMMAND:
+		break;
+	default:
 		break;
 	}
 }
@@ -121,7 +125,7 @@ void ControlTask_task( void * param)
 			//data from ADC
 			values[0] = myDrive.mot1.current_act;
 			values[1] = myDrive.mot2.current_act;
-			values[2] = myDrive.mot2.reg.batt_voltage;
+			values[2] = myDrive.batt_voltage;
 
 			//data from regulator
 			SlipSend(ID_ADC,(char *) &values, sizeof(unsigned short[3]));
@@ -136,17 +140,16 @@ void ControlTask_task( void * param)
 			//timestamp
 			SlipSend(ID_TIME_STAMP,(char *) &timestamp, sizeof(char));
 
-			rlse_update( &ident1, (float) regvalues[0],(float) regvalues[2], ((regvalues[4]>200)||(regvalues[4]<-200)));
+			//rlse_update( &ident1, (float) regvalues[0],(float) regvalues[2], ((regvalues[4]>200)||(regvalues[4]<-200)));
 			//rmnc_update( &ident2, (float) regvalues[1],(float) regvalues[3], (regvalues[1]!= 0));
 
-			compute_params(ident1.th,&regpar);
+			//compute_params(ident1.th,&regpar);
 
-			if ((regpar.Kr > 0.1) && (regpar.Kr < 3))
-				{
-				RegulatorSetPID(&myDrive.mot1.reg,regpar.Kr,regpar.Ti,regpar.Td);
-				RegulatorSetPID(&myDrive.mot2.reg,regpar.Kr,regpar.Ti,regpar.Td);
-				}
-
+			//if ((regpar.Kr > 0.1) && (regpar.Kr < 3))
+				//{
+				//RegulatorSetPID(&myDrive.mot1.reg,regpar.Kr,regpar.Ti,regpar.Td);
+				//RegulatorSetPID(&myDrive.mot2.reg,regpar.Kr,regpar.Ti,regpar.Td);
+				//}
 		}
 		else
 		{
@@ -161,11 +164,10 @@ void ControlTask_task( void * param)
 			taskListPre = 100;
 
 			char tasklist[256];
-			//vTaskList((signed char*)tasklist);
+			vTaskList((signed char*)tasklist);
 			//SlipSend(ID_TASKLIST,tasklist, strlen(tasklist));
 		}
 #endif
-
 	}
 }
 

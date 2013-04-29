@@ -16,15 +16,11 @@
 #include "driverlib/uart.h"
 #include "driverlib/interrupt.h"
 
-
 // SLIP makra znakù
 #define SLIP_END             0xC0    /* indicates end of packet */
 #define SLIP_ESC             0xDB    /* indicates byte stuffing */
 #define SLIP_ESC_END         0xDC    /* ESC ESC_END means END data byte */
 #define SLIP_ESC_ESC         0xDD    /* ESC ESC_ESC means ESC data byte */
-
-
-
 
 // OS objects objekty OS
 xSemaphoreHandle xTxMutex;
@@ -80,7 +76,6 @@ signed portBASE_TYPE SlipSerialInit( unsigned portBASE_TYPE priority, unsigned l
 	{
 		return pdFAIL;// fail
 	}
-
 }
 
 void SlipEnd( void)
@@ -137,7 +132,6 @@ int SlipSend(char id, char * data, int len)
 	xSemaphoreGive( xTxMutex );
 
 	return temp;
-
 }
 
 
@@ -177,7 +171,8 @@ void UART1_IRQHandler( void)
 }
 
 //! funkce reprezentující FreeRTOS úlohu SLIP
-void SlipSerial_task(void * param) {
+void SlipSerial_task(void * param)
+{
 	static int received = 0;
 	static int escBefore = 0;
 

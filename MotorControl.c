@@ -46,12 +46,8 @@ void InitADC( void)
 	ADCSequenceStepConfigure(ADC0_BASE,0,1,(ADC_CTL_CH1));
 	ADCSequenceStepConfigure(ADC0_BASE,0,2,(ADC_CTL_CH2|ADC_CTL_END|ADC_CTL_IE));
 	ADCSequenceEnable(ADC0_BASE,0);
-	//ADCIntEnable(ADC0_BASE,0);
-	//IntEnable(INT_ADC0SS0);
-	//IntMasterEnable();
 
 	ADCProcessorTrigger(ADC0_BASE, 0);
-
 }
 
 long MeasureADC( void)
@@ -59,24 +55,24 @@ long MeasureADC( void)
 	unsigned long adcval[3];
 	long count;
 
-	while(!ADCIntStatus(ADC0_BASE, 0, false)){};
+	while(!ADCIntStatus(ADC0_BASE, 0, false))
+	{};
 
 	count = ADCSequenceDataGet(ADC0_BASE,0,&adcval[0]);
 	ADCProcessorTrigger(ADC0_BASE, 0);
-
 	myDrive.mot1.current_total += myDrive.mot1.current_act = (short) adcval[0];
 	myDrive.mot2.current_total += myDrive.mot2.current_act = (short) adcval[1];
-	myDrive.mot1.reg.batt_voltage = myDrive.mot2.reg.batt_voltage = (short) adcval[2];
+	myDrive.batt_voltage = (short) adcval[2];
 
 	return count;
 }
 
+unsigned long pwm_period = 0;
+unsigned long qei_period = 0;
 
 signed long MotorControlInit( unsigned long priority)
 {
 	// variables
-	unsigned long pwm_period;
-	unsigned long qei_period;
 
 	pwm_period = SysCtlClockGet()/MOTOR_PWM_FREQ;
 	qei_period = (SysCtlClockGet()/SPEED_REG_FREQ)-1;
@@ -176,14 +172,14 @@ signed long MotorControlInit( unsigned long priority)
 	myDrive.mot2.reg.Beta = myDrive.mot1.reg.Beta = 1;
 	myDrive.mot2.reg.Kip = myDrive.mot1.reg.Kip = 0.5;
 	myDrive.mot2.reg.limit = myDrive.mot1.reg.limit = pwm_period;
-
+	myDrive.mot2.reg.outputScale = myDrive.mot1.reg.outputScale = (pwm_period) / (4000.0);
 
 	InitADC();
 
 	// vytvoøíme fronty pro senzory a aktory
 	xSpeedActQ  = xQueueCreate( 2, ( unsigned portBASE_TYPE ) sizeof( struct SensorActor) );
-	xMotorPWMQ1 = xQueueCreate( 1, ( unsigned portBASE_TYPE ) sizeof( short) );
-	xMotorPWMQ2 = xQueueCreate( 1, ( unsigned portBASE_TYPE ) sizeof( short) );
+	xMotorPWMQ1 = xQueueCreate( 1, ( unsigned portBASE_TYPE ) sizeof( short ) );
+	xMotorPWMQ2 = xQueueCreate( 1, ( unsigned portBASE_TYPE ) sizeof( short ) );
 
 	//
 	short pwm = 0;
@@ -280,7 +276,6 @@ void MotorControl_task( void * param)
 	char lastMotor = 0;
 
 	// dummy delay
-	//TODO: odstranit - resp upravit tak, aby nebylo potøeba
 	vTaskDelay(100);
 
 	while(1)
@@ -289,6 +284,7 @@ void MotorControl_task( void * param)
 		{
 			xQueueHandle pwmQue;
 			struct MotorControl * motor;
+
 			lastMotor = speed.id;
 
 			if (lastMotor == MOTOR_1)
@@ -352,24 +348,33 @@ void MotorControl_task( void * param)
 
 		if (lastMotor == MOTOR_2)
 		{
+			float scale = 0;
+
 			MeasureADC();
+
+			//scale = (pwm_period * myDrive.batt_voltage) / (4000.0*538.0);
+
+			//RegulatorSetScaleLimit(&myDrive.mot1.reg, scale, pwm_period);
+			//RegulatorSetScaleLimit(&myDrive.mot2.reg, scale, pwm_period);
 
 			//! kontrola pøipojení motorù
 
 			//! kontrola Fail statusu H-mostù
 
 			//! kontrola stavu baterie
-			if (myDrive.mot2.reg.batt_voltage < VOLTAGE2ADC(4.7))
+			if (myDrive.batt_voltage < VOLTAGE2ADC(4.7))
 			{
 				SetError(ERROR_BATT);
 				//MotorControlSetState(MOTOR_SHUTDOWN); // pro snížení spotøeby
 			}
 			else
-				ClearError(ERROR_BATT);// redundantní
+			{
+				ClearError(ERROR_BATT);// redundant
+			}
 
 			if( xSemaphoreGive( xWaitData ) != pdTRUE )
 			{
-				// there is no
+				// there is no data consument
 			}
 		}
 	}
