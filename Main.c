@@ -140,16 +140,16 @@ void ControlTask_task( void * param)
 			//timestamp
 			SlipSend(ID_TIME_STAMP,(char *) &timestamp, sizeof(char));
 
-			//rlse_update( &ident1, (float) regvalues[0],(float) regvalues[2], ((regvalues[4]>200)||(regvalues[4]<-200)));
+			rlse_update( &ident1, (float) regvalues[0],(float) regvalues[2], ((regvalues[4]>200)||(regvalues[4]<-200)));
 			//rmnc_update( &ident2, (float) regvalues[1],(float) regvalues[3], (regvalues[1]!= 0));
 
-			//compute_params(ident1.th,&regpar);
+			compute_params(ident1.th,&regpar);
 
-			//if ((regpar.Kr > 0.1) && (regpar.Kr < 3))
-				//{
-				//RegulatorSetPID(&myDrive.mot1.reg,regpar.Kr,regpar.Ti,regpar.Td);
-				//RegulatorSetPID(&myDrive.mot2.reg,regpar.Kr,regpar.Ti,regpar.Td);
-				//}
+			if ((regpar.Kr > 0.1) && (regpar.Kr < 3))
+			{
+				RegulatorSetPID(&myDrive.mot1.reg,regpar.Kr,regpar.Ti,regpar.Td);
+				RegulatorSetPID(&myDrive.mot2.reg,regpar.Kr,regpar.Ti,regpar.Td);
+			}
 		}
 		else
 		{

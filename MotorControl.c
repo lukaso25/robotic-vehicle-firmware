@@ -166,13 +166,23 @@ signed long MotorControlInit( unsigned long priority)
 	IntEnable(INT_QEI1);
 
 	myDrive.mot2.reg.desired = myDrive.mot1.reg.desired = 0;
-	myDrive.mot2.reg.Kr = myDrive.mot1.reg.Kr = 1.28;
+
+	/*myDrive.mot2.reg.Kr = myDrive.mot1.reg.Kr = 1.28;
 	myDrive.mot2.reg.Ti = myDrive.mot1.reg.Ti = 0.0780;
 	myDrive.mot2.reg.Td = myDrive.mot1.reg.Td = 1.6031;
 	myDrive.mot2.reg.Beta = myDrive.mot1.reg.Beta = 1;
 	myDrive.mot2.reg.Kip = myDrive.mot1.reg.Kip = 0.5;
 	myDrive.mot2.reg.limit = myDrive.mot1.reg.limit = pwm_period;
-	myDrive.mot2.reg.outputScale = myDrive.mot1.reg.outputScale = (pwm_period) / (4000.0);
+	myDrive.mot2.reg.outputScale = myDrive.mot1.reg.outputScale = (pwm_period) / (2*4000.0);*/
+
+	RegulatorSetPID(myDrive.mot1.reg, 0.26, 0.068, 1.83);
+	RegulatorSetPID(myDrive.mot2.reg, 0.26, 0.068, 1.83);
+
+	RegulatorSetParams(myDrive.mot1.reg, 0.5, 0.1, 3);
+	RegulatorSetParams(myDrive.mot2.reg, 0.5, 0.1, 3);
+
+	RegulatorSetScaleLimit(myDrive.mot1.reg)
+
 
 	InitADC();
 
@@ -306,7 +316,7 @@ void MotorControl_task( void * param)
 			switch (myDrive.state)
 			{
 			case MOTOR_RUNNING:
-				pwm = RegulatorAction(&motor->reg, speed.value);
+				pwm = RegulatorAction(&motor->reg, speed.value, 0);
 				break;
 			case MOTOR_MANUAL:
 				motor->reg.measured = speed.value;
@@ -352,17 +362,17 @@ void MotorControl_task( void * param)
 
 			MeasureADC();
 
-			//scale = (pwm_period * myDrive.batt_voltage) / (4000.0*538.0);
+			scale = (short)pwm_period / (ADC2VOLTAGE(MOTOR_PULSES_PER_VOLT)) / myDrive.batt_voltage;
 
-			//RegulatorSetScaleLimit(&myDrive.mot1.reg, scale, pwm_period);
-			//RegulatorSetScaleLimit(&myDrive.mot2.reg, scale, pwm_period);
+			RegulatorSetScaleLimit(&myDrive.mot1.reg, scale, pwm_period);
+			RegulatorSetScaleLimit(&myDrive.mot2.reg, scale, pwm_period);
 
 			//! kontrola pøipojení motorù
 
 			//! kontrola Fail statusu H-mostù
 
 			//! kontrola stavu baterie
-			if (myDrive.batt_voltage < VOLTAGE2ADC(4.7))
+			if (myDrive.batt_voltage < (short)VOLTAGE2ADC(4.7))
 			{
 				SetError(ERROR_BATT);
 				//MotorControlSetState(MOTOR_SHUTDOWN); // pro snížení spotøeby

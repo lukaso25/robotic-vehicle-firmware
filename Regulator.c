@@ -2,7 +2,7 @@
 
 #include <math.h>
 
-short RegulatorAction(struct RegulatorParams * rp, short measurement)
+short RegulatorAction(struct RegulatorParams * rp, short measurement, unsigned char manualMode)
 {
 	float flOut;
 	short siOut;
@@ -39,15 +39,24 @@ short RegulatorAction(struct RegulatorParams * rp, short measurement)
 
 	//v tomto místì bude manuální/automatický režim
 
+	rp->action = (short)flOut;
+
 	// converter gain correction
 	//rp->action = siOut = (short)( flOut ) * 538.0 / rp->batt_voltage;
-	rp->action = siOut = (short)( flOut * rp->outputScale);
+	siOut = (short)( flOut * rp->outputScale);
 
 	// output non-linearity saturation model
 	if (siOut >  rp->limit)
 		siOut =  rp->limit;
+#if REG_UNIPOLAR_LIMIT == 1
+	if (siOut < 0 )
+		siOut = 0;
+#else
 	if (siOut < -rp->limit)
 		siOut = -rp->limit;
+#endif
+
+	rp->action = siOut;
 
 	// over integration protection feedback
 	rp->saturationDiff = siOut - rp->action;
@@ -63,7 +72,7 @@ void RegulatorSetPID(struct RegulatorParams * rp, float Kr, float Ti, float Td)
 	rp->Td = Td;
 }
 
-void RegulatorSetParam(struct RegulatorParams * rp, float Beta, float Kip, float N)
+void RegulatorSetParams(struct RegulatorParams * rp, float Beta, float Kip, float N)
 {
 	// we only transfer values into structure
 	rp->Beta = Beta;

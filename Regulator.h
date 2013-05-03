@@ -68,6 +68,10 @@ struct RegulatorParams
  * \ingroup Regulator */
 #define REG_VERSION (2)
 
+/*! \brief When this macro is set to 1, output of regulator will be in range <0;+limit>, otherwise <-limit,+limit>
+ * \ingroup Regulator */
+#define REG_UNIPOLAR_LIMIT (0)
+
 /*! \brief Function that regulator action value according to measurement
  *
  * 	This function compute action value by modified PID control algorithm.
@@ -79,7 +83,7 @@ struct RegulatorParams
  * \param measurement measured value by sensor on the output of controlled system
  * \return action value to the controlled system
  *  */
-short RegulatorAction(struct RegulatorParams * rp, short measurement);
+short RegulatorAction(struct RegulatorParams * rp, short measurement, unsigned char manualMode);
 
 /*! \brief Function providing setting of PID parameters
  *
@@ -104,7 +108,7 @@ void RegulatorSetPID(struct RegulatorParams * rp, float Kr, float Ti, float Td);
  * \param Kip this parameter is proportional gain user in anti wind-up feedback loop
  * \param N this parameter is filtration coefficient of derivation part of regulator (3.0 - 10.0)
  *  */
-void RegulatorSetParam(struct RegulatorParams * rp, float Beta, float Kip, float N);
+void RegulatorSetParams(struct RegulatorParams * rp, float Beta, float Kip, float N);
 
 /*! \brief Function providing setting of output symmetric limit
  * \ingroup Regulator

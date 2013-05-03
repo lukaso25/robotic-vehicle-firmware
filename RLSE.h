@@ -7,8 +7,8 @@
 #include "SimpleMatrix.h"
 
 #define RLSE_SYSTEM_PARAMETERS (4)
-#define RLSE_MINIMAL_UPDATES (19)
-#define EXP_FORGETING_COEF (0.99)
+#define RLSE_MINIMAL_UPDATES (10)
+#define EXP_FORGETING_COEF (0.98)
 
 typedef struct regParamsStruct
 {

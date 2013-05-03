@@ -17,6 +17,9 @@
 //! this macro defines PWM frequency in Hz (H-bridge max frequency limiting parameter)
 #define MOTOR_PWM_FREQ		(5000)
 
+//! motor and encoder coeficient
+#define MOTOR_PULSES_PER_VOLT	(700.0)//(767.2)
+
 //! maximal mean value voltage
 #define MOTOR_MAX_MEAN_VOLTAGE (6.0)
 

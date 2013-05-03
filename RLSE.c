@@ -73,7 +73,7 @@ void rlse_update( rlseType* rlses, matrixValType y, matrixValType u, matrixSizeT
 	if (rlses->condition>0)
 	{
 		rlses->condition--;
-#if 0
+#if 1
 		//exponential forgetting
 		matTranspose(phiT,rlses->phi);
 
@@ -96,7 +96,7 @@ void rlse_update( rlseType* rlses, matrixValType y, matrixValType u, matrixSizeT
 		matScale(rlses->K,eps);
 		matAdd(rlses->th, rlses->K);
 #endif
-#if 1
+#if 0
 		// vybìlení predikce
 		matTranspose(phiT,rlses->phi);
 
