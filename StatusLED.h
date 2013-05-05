@@ -34,7 +34,8 @@ enum Err
 	ERROR_ACC = 3,
 	ERROR_MOTOR = 4,
 	ERROR_COMM_SLIP = 5,
-	ERROR_COMM_CAN = 6
+	ERROR_COMM_CAN = 6,
+	ERROR_COMMAND = 7
 };
 
 /*!

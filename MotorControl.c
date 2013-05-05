@@ -74,7 +74,7 @@ signed long MotorControlInit( unsigned long priority)
 {
 	// variables
 
-	pwm_period = SysCtlClockGet()/MOTOR_PWM_FREQ;
+	pwm_period =  SysCtlClockGet()/MOTOR_PWM_FREQ;
 	qei_period = (SysCtlClockGet()/SPEED_REG_FREQ)-1;
 
 	//Bridges GPIO init
@@ -94,8 +94,8 @@ signed long MotorControlInit( unsigned long priority)
 
 #else
 	//konfigurace generátorù - možnosti úprav synchronizace (PWM_GEN_MODE_SYNC | PWM_GEN_MODE_GEN_SYNC_GLOBAL | PWM_GEN_MODE_GEN_SYNC_LOCAL)
-	PWMGenConfigure(PWM_BASE, PWM_GEN_0, PWM_GEN_MODE_DOWN | PWM_GEN_MODE_NO_SYNC );
-	PWMGenConfigure(PWM_BASE, PWM_GEN_1, PWM_GEN_MODE_DOWN | PWM_GEN_MODE_NO_SYNC );
+	PWMGenConfigure(PWM_BASE, PWM_GEN_0, PWM_GEN_MODE_DOWN | PWM_GEN_MODE_NO_SYNC | PWM_GEN_MODE_DBG_RUN);
+	PWMGenConfigure(PWM_BASE, PWM_GEN_1, PWM_GEN_MODE_DOWN | PWM_GEN_MODE_NO_SYNC | PWM_GEN_MODE_DBG_RUN);
 
 	PWMGenPeriodSet(PWM_BASE, PWM_GEN_0, pwm_period);
 	PWMGenPeriodSet(PWM_BASE, PWM_GEN_1, pwm_period);
@@ -133,6 +133,15 @@ signed long MotorControlInit( unsigned long priority)
 	GPIOPinTypeGPIOOutput(BRIDGE1_EN_PORT,BRIDGE1_EN);
 	GPIOPinWrite(BRIDGE1_EN_PORT, BRIDGE1_EN, BRIDGE1_EN);
 
+	// fail inputs 0
+	GPIOPinTypeGPIOInput(BRIDGE0_FS_PORT,BRIDGE0_FS);
+	GPIOPadConfigSet(BRIDGE0_FS_PORT,BRIDGE0_FS,GPIO_STRENGTH_2MA,GPIO_PIN_TYPE_STD_WPU);
+
+	// fail inputs 1
+	GPIOPinTypeGPIOInput(BRIDGE1_FS_PORT,BRIDGE1_FS);
+	GPIOPadConfigSet(BRIDGE1_FS_PORT,BRIDGE1_FS,GPIO_STRENGTH_2MA,GPIO_PIN_TYPE_STD_WPU);
+
+
 	//************* QEI
 	// Povolení hodin periferiím
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC|SYSCTL_PERIPH_GPIOE);
@@ -165,23 +174,20 @@ signed long MotorControlInit( unsigned long priority)
 	IntEnable(INT_QEI0);
 	IntEnable(INT_QEI1);
 
-	myDrive.mot2.reg.desired = myDrive.mot1.reg.desired = 0;
 
-	/*myDrive.mot2.reg.Kr = myDrive.mot1.reg.Kr = 1.28;
-	myDrive.mot2.reg.Ti = myDrive.mot1.reg.Ti = 0.0780;
-	myDrive.mot2.reg.Td = myDrive.mot1.reg.Td = 1.6031;
-	myDrive.mot2.reg.Beta = myDrive.mot1.reg.Beta = 1;
-	myDrive.mot2.reg.Kip = myDrive.mot1.reg.Kip = 0.5;
-	myDrive.mot2.reg.limit = myDrive.mot1.reg.limit = pwm_period;
-	myDrive.mot2.reg.outputScale = myDrive.mot1.reg.outputScale = (pwm_period) / (2*4000.0);*/
+	RegulatorOdometryReset();
 
-	RegulatorSetPID(myDrive.mot1.reg, 0.26, 0.068, 1.83);
-	RegulatorSetPID(myDrive.mot2.reg, 0.26, 0.068, 1.83);
+	RegulatorReset(&myDrive.mot1.reg);
+	RegulatorReset(&myDrive.mot2.reg);
 
-	RegulatorSetParams(myDrive.mot1.reg, 0.5, 0.1, 3);
-	RegulatorSetParams(myDrive.mot2.reg, 0.5, 0.1, 3);
+	RegulatorSetPID(&myDrive.mot1.reg, 0.5, 0.19, 1.3);
+	RegulatorSetPID(&myDrive.mot2.reg, 0.5, 0.19, 1.3);
 
-	RegulatorSetScaleLimit(myDrive.mot1.reg)
+	RegulatorSetParams(&myDrive.mot1.reg, 0.9, 0.5, 1.0);
+	RegulatorSetParams(&myDrive.mot2.reg, 0.9, 0.5, 1.0);
+
+	RegulatorSetScaleLimit(&myDrive.mot1.reg,(pwm_period/MOTOR_PULSES_PER_VOLT/8.0),pwm_period);
+	RegulatorSetScaleLimit(&myDrive.mot2.reg,(pwm_period/MOTOR_PULSES_PER_VOLT/8.0),pwm_period);
 
 
 	InitADC();
@@ -265,11 +271,17 @@ void MotorControlSetWheelSpeed(signed short v1, signed short v2)
 	myDrive.mot2.reg.desired = v2;
 }
 
-void MotorControlSetSpeed(signed short v, signed short w)
+void MotorControlSetSpeed(float v, float w)
 {
-	//
-	myDrive.mot1.reg.desired =  0.5 * ( (2.0*v) + (w*0.75) );
-	myDrive.mot2.reg.desired = -0.5 * ( (2.0*v) - (w*0.75) );
+	myDrive.mot1.reg.desired = (short)( 0.5 / WHEEL_DISTANCE_PEER_QEI_PULSE * ( (2.0*v*(1.0/SPEED_REG_FREQ)) + (w*(1.0/SPEED_REG_FREQ)*WHEEL_DISTANCE) ));
+	myDrive.mot2.reg.desired = (short)(-0.5 / WHEEL_DISTANCE_PEER_QEI_PULSE * ( (2.0*v*(1.0/SPEED_REG_FREQ)) - (w*(1.0/SPEED_REG_FREQ)*WHEEL_DISTANCE) ));
+}
+
+void RegulatorOdometryReset( void)
+{
+	myDrive.position.theta = 0.0;
+	myDrive.position.x = 0.0;
+	myDrive.position.y = 0.0;
 }
 
 enum MotorState MotorControlGetState( void)
@@ -315,12 +327,11 @@ void MotorControl_task( void * param)
 
 			switch (myDrive.state)
 			{
+			case MOTOR_MANUAL:
+				pwm = RegulatorAction(&motor->reg, speed.value, 1);
+				break;
 			case MOTOR_RUNNING:
 				pwm = RegulatorAction(&motor->reg, speed.value, 0);
-				break;
-			case MOTOR_MANUAL:
-				motor->reg.measured = speed.value;
-				motor->reg.action = pwm = myDrive.mot1.reg.desired;
 				break;
 			case MOTOR_HARMONIC_BALANCE:
 				motor->reg.measured = speed.value;
@@ -338,11 +349,12 @@ void MotorControl_task( void * param)
 			case MOTOR_STOP:
 			case MOTOR_SHUTDOWN:
 			default://error
+				motor->reg.measured = speed.value;
 				pwm = 0;
 				break;
 			}
 
-			if (xQueueSend(pwmQue, &pwm, 10) != pdTRUE)
+			if (xQueueSend(pwmQue, &pwm, 100) != pdTRUE)
 			{
 				MotorControlSetState(MOTOR_FAILURE);
 				SetError(ERROR_MOTOR);
@@ -358,27 +370,45 @@ void MotorControl_task( void * param)
 
 		if (lastMotor == MOTOR_2)
 		{
-			float scale = 0;
+			float scale;
+			float delta_odo;
+			float delta_phi;
 
 			MeasureADC();
 
-			scale = (short)pwm_period / (ADC2VOLTAGE(MOTOR_PULSES_PER_VOLT)) / myDrive.batt_voltage;
+			//! odometry
+#if MOTOR_ENABLE_ODOMETRY == 1
+			delta_odo = (float)(  myDrive.mot1.reg.measured - myDrive.mot2.reg.measured ) * WHEEL_DISTANCE_PEER_QEI_PULSE / 2.0;
+			delta_phi = (float)( -myDrive.mot1.reg.measured - myDrive.mot2.reg.measured ) * WHEEL_DISTANCE_PEER_QEI_PULSE / WHEEL_DISTANCE ;
 
-			RegulatorSetScaleLimit(&myDrive.mot1.reg, scale, pwm_period);
-			RegulatorSetScaleLimit(&myDrive.mot2.reg, scale, pwm_period);
-
-			//! kontrola pøipojení motorù
+			myDrive.position.x +=  delta_odo * cosf(myDrive.position.theta);
+			myDrive.position.y +=  delta_odo * sinf(myDrive.position.theta);
+			myDrive.position.theta += delta_phi;
+#endif
 
 			//! kontrola Fail statusu H-mostù
+			if ( GPIOPinRead(BRIDGE0_FS_PORT,BRIDGE0_FS)==0 )
+				MotorControlSetState(MOTOR_FAILURE);
+
+			if ( GPIOPinRead(BRIDGE1_FS_PORT,BRIDGE1_FS)==0 )
+				MotorControlSetState(MOTOR_FAILURE);
 
 			//! kontrola stavu baterie
-			if (myDrive.batt_voltage < (short)VOLTAGE2ADC(4.7))
+			if (myDrive.batt_voltage < (short)VOLTAGE2ADC(BATERRY_MINIMAL_VOLTAGE))
 			{
 				SetError(ERROR_BATT);
-				//MotorControlSetState(MOTOR_SHUTDOWN); // pro snížení spotøeby
+				MotorControlSetState(MOTOR_SHUTDOWN); // pro snížení spotøeby
 			}
 			else
 			{
+				scale = (short)pwm_period / (ADC2VOLTAGE(MOTOR_PULSES_PER_VOLT)) / myDrive.batt_voltage;
+
+				if (scale < 2.0)
+				{
+					RegulatorSetScaleLimit(&myDrive.mot1.reg, scale, pwm_period);
+					RegulatorSetScaleLimit(&myDrive.mot2.reg, scale, pwm_period);
+				}
+
 				ClearError(ERROR_BATT);// redundant
 			}
 

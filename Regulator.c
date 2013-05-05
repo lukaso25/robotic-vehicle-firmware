@@ -7,61 +7,78 @@ short RegulatorAction(struct RegulatorParams * rp, short measurement, unsigned c
 	float flOut;
 	short siOut;
 
+	//
+	//rp->Dexp = expf(-rp->N/rp->Td);
+
+	// measurement store
 	rp->measured = measurement;
+
 	// error value
-	rp->error = rp->desired - measurement;
-
-	// PI version of regulator
-#if REG_VERSION == 1
-	// teste
-	//regulator output
-	flOut = rp->sum + (rp->Kr*rp->error);
-
-	//summator update
-	rp->sum += (rp->Kr * rp->Ti * rp->error) + (rp->Kip * rp->saturationDiff);
-#endif
+	rp->error = (rp->desired - rp->measured);
 
 	// modified PID algorithm
-#if REG_VERSION == 2
-	//! not test
+	/*
+	    yt[1] =  (K*((hodnota*w) - in))
+	    		+ Xi2
+	    		+ N*K*( -in +( Xd2*(-1 +exp(-1*(N)/Td) ))) ;
+        Xi2 += ((w-in)*K/Ti) += K/10*(ymin-yt[1]);
+	*/
+
 	// regulator output (action value)
-	flOut = rp->Kr *((rp->Beta*rp->desired) - rp->measured)
-		  + rp->sum
-		  + rp->N*rp->Kr*( -rp->measured +( rp->der *(-1 + exp(( -0.02*rp->N)/rp->Td) )));
-	//! TODO konstanta periody regulátoru
+	flOut = (rp->Kr *((rp->Beta*(float)rp->desired) - (float)rp->measured))
+			+ rp->sum
+			+ (rp->N*rp->Kr*( -rp->measured + ( rp->der * rp->Dexp ) - rp->der ) );
 
 	// integration update
-	rp->sum += (rp->Kr * rp->Ti * rp->error) + (rp->Kip * rp->saturationDiff / rp->outputScale);
+	rp->sum += ( rp->Kr * rp->Ti * rp->error ) + ( rp->Kip * rp->saturationDiff / rp->outputScale );
 
-	// derivation update
-	rp->der = (rp->der * exp((-(1/SPEED_REG_FREQ)*rp->N)/rp->Td)) - rp->measured;
-#endif
+	// derivation update Xd2 = ( Xd2 * exp(-1*Ts*N)/Td))-in;
+	rp->der = (rp->der * rp->Dexp) - rp->measured;
 
-	//v tomto místì bude manuální/automatický režim
 
-	rp->action = (short)flOut;
 
-	// converter gain correction
-	//rp->action = siOut = (short)( flOut ) * 538.0 / rp->batt_voltage;
-	siOut = (short)( flOut * rp->outputScale);
+	// manual/automatic mode switch
+	if (manualMode > 0 ) // manual mode
+	{
+		// converter gain correction
+		siOut = (short)( rp->desired * rp->outputScale);
+		// save data
+		rp->action = rp->desired;
+	}
+	else // automatic mode
+	{
+		// converter gain correction
+		siOut = (short)( flOut * rp->outputScale);
+
+		// save data
+		rp->action = (short)flOut;
+	}
 
 	// output non-linearity saturation model
 	if (siOut >  rp->limit)
 		siOut =  rp->limit;
-#if REG_UNIPOLAR_LIMIT == 1
-	if (siOut < 0 )
-		siOut = 0;
-#else
-	if (siOut < -rp->limit)
-		siOut = -rp->limit;
-#endif
+	#if REG_UNIPOLAR_LIMIT == 1
+		if (siOut < 0 )
+			siOut = 0;
+	#else
+		if (siOut < -rp->limit)
+			siOut = -rp->limit;
+	#endif
 
-	rp->action = siOut;
-
-	// over integration protection feedback
-	rp->saturationDiff = siOut - rp->action;
+	// over-integration protection feedback
+	rp->saturationDiff = (float)siOut - (flOut * rp->outputScale);
 
 	return siOut;
+}
+
+void RegulatorReset(struct RegulatorParams * rp)
+{
+	// we only clear state variables
+	rp->der = 0;
+	rp->sum = 0;
+	rp->saturationDiff = 0;
+	rp->desired = 0;
+	rp->action = 0;
 }
 
 void RegulatorSetPID(struct RegulatorParams * rp, float Kr, float Ti, float Td)

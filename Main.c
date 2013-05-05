@@ -27,6 +27,9 @@ void vSystemInit( void)
 {
 	//! CLOCK setup to 20 MHz - base frequency 200MHz
 	SysCtlClockSet(SYSCTL_SYSDIV_10 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_6MHZ);
+
+	USER_SWITCH_INIT();
+
 }
 
 //! temporary motor mode
@@ -40,40 +43,63 @@ void SlipSerialProcessPacket(char packet_buffer[], int length)
 		if (length<5)
 		{
 			//corrupted data
+			SetError(ERROR_COMMAND);
 		}
 		else
 		{
-			//need to be tested
+			ClearError(ERROR_COMM_SLIP);
+			MotorControlSetWheelSpeed(packet_buffer[1]|(packet_buffer[2]<<8), packet_buffer[3]|(packet_buffer[4]<<8));
 		}
-		ClearError(ERROR_COMM_SLIP);
-		MotorControlSetWheelSpeed(packet_buffer[1]|(packet_buffer[2]<<8), packet_buffer[3]|(packet_buffer[4]<<8));
-		MotorControlSetState(motorMode);
+		break;
+	case ID_SET_SPEED:
+		if (length<8)
+		{
+			//corrupted data
+			SetError(ERROR_COMMAND);
+		}
+		else
+		{
+			float speeds[2];
+			ClearError(ERROR_COMM_SLIP);
+			memcpy(&speeds,&packet_buffer[1],8);
+			MotorControlSetSpeed(speeds[0],speeds[1]);
+		}
 		break;
 	case ID_MOTOR_MODE:
 		if (length<2)
 		{
 			//corrupted data
+			SetError(ERROR_COMMAND);
 		}
 		else
 		{
-			motorMode = packet_buffer[1];
-			MotorControlSetState(motorMode);
+			if (packet_buffer[1]<6)
+			{
+				motorMode = packet_buffer[1];
+				MotorControlSetState(motorMode);
+			}
+			else
+			{
+				SetError(ERROR_COMMAND);
+			}
 		}
 		break;
 	case ID_REG_PARAMS:
 		if (length<6)
 		{
 			//corrupted data
+			SetError(ERROR_COMMAND);
 		}
 		else
 		{
-			memcpy(&myDrive.mot1.reg.Kr,&packet_buffer[1],20);
-			memcpy(&myDrive.mot2.reg.Kr,&packet_buffer[1],20);
+			memcpy(&myDrive.mot1.reg.Kr,&packet_buffer[1],24);
+			memcpy(&myDrive.mot2.reg.Kr,&packet_buffer[1],24);
 		}
 		break;
 	case ID_GENERIC_COMMAND:
 		break;
 	default:
+		SetError(ERROR_COMMAND);
 		break;
 	}
 }
@@ -91,11 +117,17 @@ void ControlTask_task( void * param)
 	short taskListPre = 100;
 #endif
 	rlseType ident1;
-	rlseType ident2;
+	//rlseType ident2;
 	regParamType regpar;
 
 	rlse_init(&ident1);
-	rlse_init(&ident2);
+	//default parameters
+	ident1.th->mat[0] = -1.43380;
+	ident1.th->mat[1] = 0.44817;
+	ident1.th->mat[2] = -0.64161;
+	ident1.th->mat[3] = 0.64161;
+
+	//rlse_init(&ident2);
 
 	while(1)
 	{
@@ -133,22 +165,32 @@ void ControlTask_task( void * param)
 			//motor control state
 			SlipSend(ID_MOTOR_MODE, (char *) &myDrive.state, sizeof(enum MotorState) );
 
+			//odometry
+			SlipSend(ID_POSITION, (char *) &myDrive.position, 3*sizeof(float));
+
 			// identified parameters
 			SlipSend(ID_IDENT_PARAMS, (char *) &ident1.th->mat[0], 4*sizeof(float));
-			SlipSend(ID_IDENT_PARAMS2, (char *) &ident2.th->mat[0], 4*sizeof(float));
 
 			//timestamp
 			SlipSend(ID_TIME_STAMP,(char *) &timestamp, sizeof(char));
 
-			rlse_update( &ident1, (float) regvalues[0],(float) regvalues[2], ((regvalues[4]>200)||(regvalues[4]<-200)));
+			rlse_update( &ident1, (float) regvalues[0],(float) regvalues[2], ((regvalues[4]>400)||(regvalues[4]<-400)));
 			//rmnc_update( &ident2, (float) regvalues[1],(float) regvalues[3], (regvalues[1]!= 0));
 
 			compute_params(ident1.th,&regpar);
 
-			if ((regpar.Kr > 0.1) && (regpar.Kr < 3))
+			if ((regpar.Kr > 0.1) && (regpar.Kr < 1))
 			{
 				RegulatorSetPID(&myDrive.mot1.reg,regpar.Kr,regpar.Ti,regpar.Td);
 				RegulatorSetPID(&myDrive.mot2.reg,regpar.Kr,regpar.Ti,regpar.Td);
+
+				//regulator params update
+				SlipSend(ID_REG_PARAMS, (char *) &myDrive.mot1.reg.Kr, 3*sizeof(float));
+			}
+			else
+			{
+				RegulatorSetPID(&myDrive.mot1.reg, 0.5, 0.19, 1.3);
+				RegulatorSetPID(&myDrive.mot2.reg, 0.5, 0.19, 1.3);
 			}
 		}
 		else
@@ -165,7 +207,7 @@ void ControlTask_task( void * param)
 
 			char tasklist[256];
 			vTaskList((signed char*)tasklist);
-			//SlipSend(ID_TASKLIST,tasklist, strlen(tasklist));
+			SlipSend(ID_TASKLIST,tasklist, strlen(tasklist));
 		}
 #endif
 	}
@@ -208,16 +250,22 @@ int main(void)
 		//error
 	}
 
-	//! úloha øízení  - tady budou kraviny kolem, logování atd
-	if ( ControlTaskInit(tskIDLE_PRIORITY +2) != pdPASS)
+	if (USER_SWITCH_READ2())
 	{
-		//error
+		//! úloha øízení  - tady budou kraviny kolem, logování atd
+		if ( ControlTaskInit(tskIDLE_PRIORITY +2) != pdPASS)
+		{
+			//error
+		}
 	}
 
-	//! CANTest task
-	if (xTaskCreate(CANtest_task, (signed portCHAR *) "CAN", 256, NULL, tskIDLE_PRIORITY +1, NULL) != pdPASS)
+	if (USER_SWITCH_READ3())
 	{
-		//error
+		//! CANTest task
+		if (xTaskCreate(CANtest_task, (signed portCHAR *) "CAN", 256, NULL, tskIDLE_PRIORITY +1, NULL) != pdPASS)
+		{
+			//error
+		}
 	}
 
 #if configUSE_TRACE_FACILITY==1

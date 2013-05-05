@@ -17,14 +17,38 @@
 //! this macro defines PWM frequency in Hz (H-bridge max frequency limiting parameter)
 #define MOTOR_PWM_FREQ		(5000)
 
+//! this macro define regulator sampling frequency in Hz
+#define SPEED_REG_FREQ		(50)   //pøednastavení QEI èasovaèe pro periodu 20ms (50Hz)
+
 //! motor and encoder coeficient
 #define MOTOR_PULSES_PER_VOLT	(700.0)//(767.2)
 
-//! maximal mean value voltage
+//! maximal mean value voltage for motor
 #define MOTOR_MAX_MEAN_VOLTAGE (6.0)
+
+//! minimal battery voltage - when measured is lower -> motor control will be switched into shutdown state (4.7 V is minimal possible value, 5.5 V for the 2-cell LiIon battery pack)
+#define BATERRY_MINIMAL_VOLTAGE (4.7)
 
 //! this macro define PWM output for harmonic balance test
 #define HARMONIC_BALANCE_RELAY_LIMIT  (1000)
+
+//! distance between wheels in mm for odometry and speed conversions
+#define WHEEL_DISTANCE (65.0)
+
+//! wheel pulses peer revolution - according to the QEI setting and encoder parameters
+#define WHEEL_PULSES_PER_REVOLUTION	(4*512)
+
+//! wheel circumference in mm
+#define WHEEL_CIRCUMFERENCE	(147.65)
+
+//! motor-wheel gear-box ration n  ( n = n_input/n_output )
+#define WHEEL_GEAR_RATIO (100.0/12.0)
+
+//! wheel distance peer EQI pulse
+#define WHEEL_DISTANCE_PEER_QEI_PULSE  (WHEEL_CIRCUMFERENCE/WHEEL_GEAR_RATIO/WHEEL_PULSES_PER_REVOLUTION)
+
+
+#define MOTOR_ENABLE_ODOMETRY (1)
 
 //#define BIPOLAR_PWM_CONTROL
 
@@ -192,40 +216,13 @@ void MotorControlSetWheelSpeed(signed short v1, signed short v2);
  * \param w rotation speed
  * \ingroup MotorControl
  * */
-void MotorControlSetSpeed(signed short v, signed short w);
+void MotorControlSetSpeed(float v, float w);
 
+
+void RegulatorOdometryReset( void);
 
 // FreeRTOS task
 void MotorControl_task( void * param);
 
-
-#define BRIDGE0_EN				(GPIO_PIN_7)
-#define BRIDGE0_EN_PORT			(GPIO_PORTD_BASE)
-#define BRIDGE0_IN1				(GPIO_PIN_0)
-#define BRIDGE0_IN1_PORT		(GPIO_PORTF_BASE)
-#define BRIDGE0_IN2				(GPIO_PIN_1)
-#define BRIDGE0_IN2_PORT		(GPIO_PORTG_BASE)
-#define BRIDGE0_FS				(GPIO_PIN_4)
-#define BRIDGE0_FS_PORT			(GPIO_PORTB_BASE)
-
-#define BRIDGE1_EN				(GPIO_PIN_1)
-#define BRIDGE1_EN_PORT			(GPIO_PORTF_BASE)
-#define BRIDGE1_IN1				(GPIO_PIN_0)
-#define BRIDGE1_IN1_PORT		(GPIO_PORTB_BASE)
-#define BRIDGE1_IN2				(GPIO_PIN_1)
-#define BRIDGE1_IN2_PORT		(GPIO_PORTB_BASE)
-#define BRIDGE1_FS				(GPIO_PIN_5)
-#define BRIDGE1_FS_PORT			(GPIO_PORTB_BASE)
-
-#define MOTOR_SHIFTER_OE		(GPIO_PIN_7)
-#define MOTOR_SHIFTER_OE_PORT	(GPIO_PORTA_BASE)
-
-#define QEI0_PORT	(GPIO_PORTC_BASE)
-#define QEI0_PHA	(GPIO_PIN_4)
-#define QEI0_PHB	(GPIO_PIN_6)
-
-#define QEI1_PORT	(GPIO_PORTE_BASE)
-#define QEI1_PHA	(GPIO_PIN_3)
-#define QEI1_PHB	(GPIO_PIN_2)
 
 #endif//__MOTORCONTROL_H__

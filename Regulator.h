@@ -33,9 +33,8 @@ struct RegulatorParams
 
 	//! output limit value
 	unsigned short limit;
-	// value for manual output
-	//short manual;
 
+	//! output gain correction
 	float outputScale;
 
 	//!
@@ -43,8 +42,9 @@ struct RegulatorParams
 
 	//!
 	float der;
+
 	//!
-	short saturationDiff;
+	float saturationDiff;
 
 	//! regulator gain
 	float Kr;
@@ -58,15 +58,14 @@ struct RegulatorParams
 	float Kip;
 	//! the derivation filtration coefficient
 	float N;
+	//! derivation exp coeficient
+	float Dexp;
 };
 
-//! this macro define regulator sampling frequency in Hz
-//! \ingroup Regulator
-#define SPEED_REG_FREQ		(50)   //pøednastavení QEI èasovaèe pro periodu 20ms (50Hz)
 
 /*! \brief Available states of MotorControl module
  * \ingroup Regulator */
-#define REG_VERSION (2)
+//#define REG_VERSION (2)
 
 /*! \brief When this macro is set to 1, output of regulator will be in range <0;+limit>, otherwise <-limit,+limit>
  * \ingroup Regulator */
@@ -92,8 +91,8 @@ short RegulatorAction(struct RegulatorParams * rp, short measurement, unsigned c
  * \ingroup Regulator
  * \param rp pointer to the structure, that contain regulator data
  * \param Kr regulator gain
- * \param Ti integration time constant (\f$T_i=T_I/T_{VZ}\f$ compared to continuous system)
- * \param Td derivation time constant (\f$T_d=T_{VZ}/T_D\f$  compared to continuous system)
+ * \param Ti inverted integration time constant (\f$T_i=T_{S}/T_I\f$ compared to continuous system)
+ * \param Td derivation time constant (\f$T_d=T_D/T_{S}\f$  compared to continuous system)
  *  */
 void RegulatorSetPID(struct RegulatorParams * rp, float Kr, float Ti, float Td);
 
@@ -106,7 +105,7 @@ void RegulatorSetPID(struct RegulatorParams * rp, float Kr, float Ti, float Td);
  * \param rp pointer to the structure, that contain regulator data
  * \param Beta ratio of proportional gain of desired value (0.0 - 1.0)
  * \param Kip this parameter is proportional gain user in anti wind-up feedback loop
- * \param N this parameter is filtration coefficient of derivation part of regulator (3.0 - 10.0)
+ * \param N this parameter is filtration coefficient of derivation part of regulator (1.0 - 20.0), lower for higher noise in process
  *  */
 void RegulatorSetParams(struct RegulatorParams * rp, float Beta, float Kip, float N);
 
@@ -115,5 +114,8 @@ void RegulatorSetParams(struct RegulatorParams * rp, float Beta, float Kip, floa
  * \param limit symmetric limit of saturation nonlinearity on the output of regulator
  *  */
 void RegulatorSetScaleLimit(struct RegulatorParams * rp, float outputScale, unsigned short limit);
+
+
+void RegulatorReset(struct RegulatorParams * rp);
 
 #endif//__REGULATOR_H__

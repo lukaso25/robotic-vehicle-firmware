@@ -14,13 +14,6 @@
 #include "SlipSerial.h"
 
 
-#define I2C_SCL				(GPIO_PIN_2)
-#define I2C_SCL_PORT		(GPIO_PORTB_BASE)
-
-#define I2C_SDA				(GPIO_PIN_3)
-#define I2C_SDA_PORT		(GPIO_PORTB_BASE)
-
-//adresa akcelerometru
 #define ACC_I2C_ADR		(0x20>>1)
 
 

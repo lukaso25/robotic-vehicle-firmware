@@ -2,6 +2,7 @@
 #define __ACCELEROMETER_H__
 
 #include "FreeRTOS.h"
+#include "CommonDefs.h"
 
 /*! \file Accelerometer.h
  *  \author Lukas Otava
