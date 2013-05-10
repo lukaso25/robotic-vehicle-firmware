@@ -6,10 +6,10 @@
 
 #include "SimpleMatrix.h"
 
-#define RLSE_MINIMAL_UPDATES (25)
+#define RLSE_MINIMAL_UPDATES (19)
 #define RLSE_EXP_FORGETING_COEF (0.98)
-#define RLSE_P_MATRIX_INIT	(1.0e1)
-#define RLSE_IMV_TYPE (1)
+#define RLSE_P_MATRIX_INIT	(1.0e3)
+#define RLSE_IMV_TYPE (0)
 
 
 #define RLSE_SYSTEM_PARAMETERS (4)
@@ -54,8 +54,6 @@ enum PAST_VALS_ID
 	Y1 = 0, Y2, Y3, Y4, U1
 };
 
-inline void matPrint( matrixType *mt);
-void matTest( void);
 void rlse_init( rlseType* rlses);
 void rlse_reinit( rlseType* rlses);
 void rlse_update( rlseType* rlses, matrixValType y, matrixValType u, matrixSizeType condition);

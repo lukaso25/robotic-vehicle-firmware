@@ -62,13 +62,18 @@ long MeasureADC( void)
 	ADCProcessorTrigger(ADC0_BASE, 0);
 	myDrive.mot1.current_total += myDrive.mot1.current_act = (short) adcval[0];
 	myDrive.mot2.current_total += myDrive.mot2.current_act = (short) adcval[1];
-	myDrive.batt_voltage = (short) adcval[2];
+
+	//floating average
+	myDrive.batt_voltage = myDrive.batt_voltage + ((short) adcval[2] - myDrive.batt_voltage)/10;
+	//myDrive.batt_voltage = (short) adcval[2];
 
 	return count;
 }
 
 unsigned long pwm_period = 0;
 unsigned long qei_period = 0;
+
+rlseType ident;
 
 signed long MotorControlInit( unsigned long priority)
 {
@@ -90,9 +95,7 @@ signed long MotorControlInit( unsigned long priority)
 	GPIOPinTypePWM(BRIDGE1_IN1_PORT,BRIDGE1_IN1);
 	GPIOPinTypePWM(BRIDGE1_IN2_PORT,BRIDGE1_IN2);
 
-#ifdef BIPOLAR_PWM_CONTROL
 
-#else
 	//konfigurace generátorù - možnosti úprav synchronizace (PWM_GEN_MODE_SYNC | PWM_GEN_MODE_GEN_SYNC_GLOBAL | PWM_GEN_MODE_GEN_SYNC_LOCAL)
 	PWMGenConfigure(PWM_BASE, PWM_GEN_0, PWM_GEN_MODE_DOWN | PWM_GEN_MODE_NO_SYNC | PWM_GEN_MODE_DBG_RUN);
 	PWMGenConfigure(PWM_BASE, PWM_GEN_1, PWM_GEN_MODE_DOWN | PWM_GEN_MODE_NO_SYNC | PWM_GEN_MODE_DBG_RUN);
@@ -110,7 +113,7 @@ signed long MotorControlInit( unsigned long priority)
 	// this enables generators
 	PWMGenEnable(PWM_BASE, PWM_GEN_0);
 	PWMGenEnable(PWM_BASE, PWM_GEN_1);
-#endif
+
 
 	// output matrix
 	//PWMOutputState(PWM_BASE, PWM_OUT_0_BIT | PWM_OUT_1_BIT | PWM_OUT_2_BIT | PWM_OUT_3_BIT, false);// dopøedu
@@ -175,10 +178,10 @@ signed long MotorControlInit( unsigned long priority)
 	IntEnable(INT_QEI1);
 
 
-	RegulatorOdometryReset();
+	MotorControlOdometryReset();
 
-	RegulatorReset(&myDrive.mot1.reg);
-	RegulatorReset(&myDrive.mot2.reg);
+	RegulatorResetStates(&myDrive.mot1.reg);
+	RegulatorResetStates(&myDrive.mot2.reg);
 
 	RegulatorSetPID(&myDrive.mot1.reg, 0.5, 0.19, 1.3);
 	RegulatorSetPID(&myDrive.mot2.reg, 0.5, 0.19, 1.3);
@@ -189,6 +192,13 @@ signed long MotorControlInit( unsigned long priority)
 	RegulatorSetScaleLimit(&myDrive.mot1.reg,(pwm_period/MOTOR_PULSES_PER_VOLT/8.0),pwm_period);
 	RegulatorSetScaleLimit(&myDrive.mot2.reg,(pwm_period/MOTOR_PULSES_PER_VOLT/8.0),pwm_period);
 
+	rlse_init(&ident);
+
+	//default parameters
+	ident.th->mat[0] = -1.43380;
+	ident.th->mat[1] = 0.44817;
+	ident.th->mat[2] = -0.64161;
+	ident.th->mat[3] = 0.64161;
 
 	InitADC();
 
@@ -223,15 +233,6 @@ void MotorControlSetState( enum MotorState st)
 	switch (st)
 	{
 	case MOTOR_RUNNING:
-		GPIOPinTypeGPIOOutput( MOTOR_SHIFTER_OE_PORT, MOTOR_SHIFTER_OE);
-		GPIOPinWrite(MOTOR_SHIFTER_OE_PORT,MOTOR_SHIFTER_OE,(unsigned char)~MOTOR_SHIFTER_OE);
-		myDrive.state = st;
-		break;
-	case MOTOR_HARMONIC_BALANCE:
-		GPIOPinTypeGPIOOutput( MOTOR_SHIFTER_OE_PORT, MOTOR_SHIFTER_OE);
-		GPIOPinWrite(MOTOR_SHIFTER_OE_PORT,MOTOR_SHIFTER_OE,(unsigned char)~MOTOR_SHIFTER_OE);
-		myDrive.state = st;
-		break;
 	case MOTOR_MANUAL:
 		GPIOPinTypeGPIOOutput( MOTOR_SHIFTER_OE_PORT, MOTOR_SHIFTER_OE);
 		GPIOPinWrite(MOTOR_SHIFTER_OE_PORT,MOTOR_SHIFTER_OE,(unsigned char)~MOTOR_SHIFTER_OE);
@@ -245,8 +246,7 @@ void MotorControlSetState( enum MotorState st)
 		myDrive.state = st;
 		break;
 	default:
-		//state out of range - do nothing or MOTOR_FAILURE???
-		break;
+		myDrive.state = MOTOR_FAILURE;
 	case MOTOR_FAILURE:
 	case MOTOR_SHUTDOWN:
 		GPIOPinTypeGPIOOutput( MOTOR_SHIFTER_OE_PORT, MOTOR_SHIFTER_OE);
@@ -263,6 +263,20 @@ signed portBASE_TYPE MotorControlWaitData(portTickType timeout)
 	return xSemaphoreTake( xWaitData, timeout );
 }
 
+void MotorControlSetSelfTuning( enum SelFTuningState  state)
+{
+	//input data validation
+	if ((state == SELFTUNUNG_START) || (state == SELFTUNING_STOP))
+	{
+		// new current state setting
+		myDrive.selftuning_state = state;
+	}
+}
+enum SelFTuningState MotorControlGetSelfTuning( void)
+{
+	return myDrive.selftuning_state;
+}
+
 void MotorControlSetWheelSpeed(signed short v1, signed short v2)
 {
 	// saturation??
@@ -277,7 +291,7 @@ void MotorControlSetSpeed(float v, float w)
 	myDrive.mot2.reg.desired = (short)(-0.5 / WHEEL_DISTANCE_PEER_QEI_PULSE * ( (2.0*v*(1.0/SPEED_REG_FREQ)) - (w*(1.0/SPEED_REG_FREQ)*WHEEL_DISTANCE) ));
 }
 
-void RegulatorOdometryReset( void)
+void MotorControlOdometryReset( void)
 {
 	myDrive.position.theta = 0.0;
 	myDrive.position.x = 0.0;
@@ -290,6 +304,8 @@ enum MotorState MotorControlGetState( void)
 	return myDrive.state;
 }
 
+short tuningTime = 0;
+short ident_speed = 0;
 
 void MotorControl_task( void * param)
 {
@@ -328,12 +344,17 @@ void MotorControl_task( void * param)
 			switch (myDrive.state)
 			{
 			case MOTOR_MANUAL:
+				if (myDrive.selftuning_state == SELFTUNING_RUNING)
+				{
+					motor->reg.desired = ident_speed*1500;
+				}
 				pwm = RegulatorAction(&motor->reg, speed.value, 1);
 				break;
 			case MOTOR_RUNNING:
 				pwm = RegulatorAction(&motor->reg, speed.value, 0);
 				break;
-			case MOTOR_HARMONIC_BALANCE:
+			// HARMONIC BALANCE TEST CODE - not for release
+			/*case MOTOR_HARMONIC_BALANCE:
 				motor->reg.measured = speed.value;
 				//! test Metoda harmonické rovnováhy
 				if (speed.value>0)
@@ -344,7 +365,7 @@ void MotorControl_task( void * param)
 				{
 					motor->reg.action = pwm = HARMONIC_BALANCE_RELAY_LIMIT;
 				}
-				break;
+				break;*/
 			case MOTOR_FAILURE:
 			case MOTOR_STOP:
 			case MOTOR_SHUTDOWN:
@@ -370,30 +391,39 @@ void MotorControl_task( void * param)
 
 		if (lastMotor == MOTOR_2)
 		{
+			regParamType regpar;
+
 			float scale;
 			float delta_odo;
 			float delta_phi;
 
+
 			MeasureADC();
 
-			//! odometry
+			//! odometry code
 #if MOTOR_ENABLE_ODOMETRY == 1
+			// position difference
 			delta_odo = (float)(  myDrive.mot1.reg.measured - myDrive.mot2.reg.measured ) * WHEEL_DISTANCE_PEER_QEI_PULSE / 2.0;
 			delta_phi = (float)( -myDrive.mot1.reg.measured - myDrive.mot2.reg.measured ) * WHEEL_DISTANCE_PEER_QEI_PULSE / WHEEL_DISTANCE ;
 
+			// position update
 			myDrive.position.x +=  delta_odo * cosf(myDrive.position.theta);
 			myDrive.position.y +=  delta_odo * sinf(myDrive.position.theta);
 			myDrive.position.theta += delta_phi;
 #endif
 
-			//! kontrola Fail statusu H-mostù
+			//! H-bridges fail status check
 			if ( GPIOPinRead(BRIDGE0_FS_PORT,BRIDGE0_FS)==0 )
+			{
 				MotorControlSetState(MOTOR_FAILURE);
+			}
 
 			if ( GPIOPinRead(BRIDGE1_FS_PORT,BRIDGE1_FS)==0 )
+			{
 				MotorControlSetState(MOTOR_FAILURE);
+			}
 
-			//! kontrola stavu baterie
+			//! Minimal battery voltage check
 			if (myDrive.batt_voltage < (short)VOLTAGE2ADC(BATERRY_MINIMAL_VOLTAGE))
 			{
 				SetError(ERROR_BATT);
@@ -401,8 +431,10 @@ void MotorControl_task( void * param)
 			}
 			else
 			{
+				// hodnota zesílení regulátoru
 				scale = (short)pwm_period / (ADC2VOLTAGE(MOTOR_PULSES_PER_VOLT)) / myDrive.batt_voltage;
 
+				// adaptace dle bterie
 				if (scale < 2.0)
 				{
 					RegulatorSetScaleLimit(&myDrive.mot1.reg, scale, pwm_period);
@@ -411,6 +443,53 @@ void MotorControl_task( void * param)
 
 				ClearError(ERROR_BATT);// redundant
 			}
+
+			switch (myDrive.selftuning_state)
+			{
+			case SELFTUNUNG_START:
+				MotorControlSetWheelSpeed(0,0);
+				MotorControlSetState(MOTOR_MANUAL);
+				tuningTime = 80;
+				myDrive.selftuning_state = SELFTUNING_RUNING;
+				break;
+			case SELFTUNING_RUNING:
+				ident_speed = ((tuningTime/50)%2)*2-1;
+				tuningTime++;
+				if (tuningTime > 400)
+					myDrive.selftuning_state = SELFTUNING_END;
+				break;
+			case SELFTUNING_END:
+
+				compute_params(ident.th,&regpar);
+
+				if ((regpar.Kr > 0.01) && (regpar.Kr < 10))
+				{
+					RegulatorSetPID(&myDrive.mot1.reg,regpar.Kr,regpar.Ti,regpar.Td);
+					RegulatorSetPID(&myDrive.mot2.reg,regpar.Kr,regpar.Ti,regpar.Td);
+					MotorControlSetState(MOTOR_STOP);
+					myDrive.selftuning_state = SELFTUNING_DONE;
+				}
+				else
+				{
+					RegulatorSetPID(&myDrive.mot1.reg, 0.5, 0.19, 1.3);
+					RegulatorSetPID(&myDrive.mot2.reg, 0.5, 0.19, 1.3);
+					MotorControlSetState(MOTOR_STOP);
+					myDrive.selftuning_state = SELFTUNING_ERROR;
+				}
+				break;
+			default:
+			case SELFTUNING_STOP:
+				break;
+			case SELFTUNING_DONE:
+				break;
+			case SELFTUNING_ERROR:
+				break;
+
+			}
+			rlse_update( &ident, (float) myDrive.mot1.reg.measured,(float) myDrive.mot1.reg.action, myDrive.selftuning_state == SELFTUNING_RUNING);
+			//rlse_update( &ident, (float) myDrive.mot1.reg.measured,(float) myDrive.mot1.reg.action, ((myDrive.mot1.reg.der>500)||(myDrive.mot1.reg.der<-500)));
+
+
 
 			if( xSemaphoreGive( xWaitData ) != pdTRUE )
 			{
@@ -449,7 +528,9 @@ void QEI0_IRQHandler( void)
 			speed.value = QEIVelocityGet(QEI0_BASE);
 			//speed.value *= QEIDirectionGet(QEI0_BASE); // alternativa
 			if (QEIDirectionGet(QEI0_BASE) < 0) // backward?
+			{
 				speed.value *= -1;//! šlo by jednodušeji?
+			}
 
 			speed.id = MOTOR_1;
 		}
@@ -533,7 +614,9 @@ void QEI1_IRQHandler( void)
 			speed.value = QEIVelocityGet(QEI1_BASE);
 			//speed.value *= QEIDirectionGet(QEI0_BASE); // alternativa
 			if (QEIDirectionGet(QEI1_BASE) < 0) // backward?
+			{
 				speed.value *= -1;
+			}
 
 			speed.id = MOTOR_2;
 		}

@@ -116,6 +116,6 @@ void RegulatorSetParams(struct RegulatorParams * rp, float Beta, float Kip, floa
 void RegulatorSetScaleLimit(struct RegulatorParams * rp, float outputScale, unsigned short limit);
 
 
-void RegulatorReset(struct RegulatorParams * rp);
+void RegulatorResetStates(struct RegulatorParams * rp);
 
 #endif//__REGULATOR_H__

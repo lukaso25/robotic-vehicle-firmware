@@ -69,22 +69,25 @@ void rlse_update( rlseType* rlses, matrixValType y, matrixValType u, matrixSizeT
 	rlses->DZ->mat[3] =  rlses->past_values[U1];
 #endif
 
+	//epsilon
+	matTranspose(phiT,rlses->phi);
+	matMul(temp11,phiT,rlses->th);
+	eps = y - temp11->mat[0];
+
+	condition = ((eps>20.0)||(eps<-20.0))&&condition;
 	if (condition)
 	{
 		rlses->condition = RLSE_MINIMAL_UPDATES;
 	}
 
+
 	if (rlses->condition > 0)
 	{
 		rlses->condition--;
 
+
 #if RLSE_IMV_TYPE == 1
 		// IMV method
-		matTranspose(phiT,rlses->phi);
-
-		//epsilon
-		matMul(temp11,phiT,rlses->th);
-		eps = y - temp11->mat[0];
 
 		//K
 		matMul3(temp11,phiT,rlses->P,rlses->phi);
@@ -100,14 +103,9 @@ void rlse_update( rlseType* rlses, matrixValType y, matrixValType u, matrixSizeT
 		//theta
 		matScale(rlses->K,eps);
 		matAdd(rlses->th, rlses->K);
+
 #else
 		//exponential forgetting
-		matTranspose(phiT,rlses->phi);
-
-		//epsilon
-		matMul(temp11,phiT,rlses->th);
-		eps = y - temp11->mat[0];
-
 		//K
 		matMul3(temp11,phiT,rlses->P,rlses->phi);
 		temp11->mat[0] += RLSE_EXP_FORGETING_COEF; //(phi'*P*phi)

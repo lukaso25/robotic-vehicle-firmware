@@ -4,6 +4,8 @@
 #include "driverlib/gpio.h"
 #include "driverlib/sysctl.h"
 
+#include <math.h>
+
 //#include "semihosting.h"
 
 #include "FreeRTOS.h"
@@ -34,6 +36,10 @@ void vSystemInit( void)
 
 //! temporary motor mode
 char motorMode = MOTOR_RUNNING;
+
+char namiste = 0;
+struct Position desPos;
+
 void SlipSerialProcessPacket(char packet_buffer[], int length)
 {
 	//packet arrived
@@ -63,6 +69,7 @@ void SlipSerialProcessPacket(char packet_buffer[], int length)
 			ClearError(ERROR_COMM_SLIP);
 			memcpy(&speeds,&packet_buffer[1],8);
 			MotorControlSetSpeed(speeds[0],speeds[1]);
+			//MotorControlSetState(motorMode);
 		}
 		break;
 	case ID_MOTOR_MODE:
@@ -96,7 +103,34 @@ void SlipSerialProcessPacket(char packet_buffer[], int length)
 			memcpy(&myDrive.mot2.reg.Kr,&packet_buffer[1],24);
 		}
 		break;
+	case ID_POSITION:
+		if (length<6)
+		{
+			//corrupted data
+			SetError(ERROR_COMMAND);
+		}
+		else
+		{
+			memcpy(&desPos,&packet_buffer[1],12);
+		}
+		break;
 	case ID_GENERIC_COMMAND:
+		switch (packet_buffer[1])
+		{
+		case COMMAND_GO:
+			//namiste = 0;
+			break;
+		case COMMAND_GET_REG:
+			//regulator params update
+			SlipSend(ID_REG_PARAMS, (char *) &myDrive.mot1.reg.Kr, 3*sizeof(float));
+			break;
+		case COMMAND_ADAPTIVE_REG:
+			MotorControlSetSelfTuning(SELFTUNUNG_START);
+			break;
+		case COMMAND_RESET_ODOMETRY:
+			MotorControlOdometryReset();
+			break;
+		}
 		break;
 	default:
 		SetError(ERROR_COMMAND);
@@ -111,23 +145,34 @@ void SlipSerialReceiveTimeout( void)
 	SetError(ERROR_COMM_SLIP);
 }
 
+/*float AngleError(struct Position* actual, struct Position* desired)
+{
+	float error = 0.0;
+
+	float zu = atan2f((desired->y-actual->y),(desired->x-actual->x));
+	float th = atan2f(sinf(actual->theta),cosf(actual->theta));
+
+	error = zu - th;
+	SlipSend(ID_TEST_PARAM, (char *) &error, sizeof(float));
+
+	return error;
+}
+float Distance(struct Position* actual, struct Position* desired)
+{
+	return sqrtf( (desired->y-actual->y)*(desired->y-actual->y) + (desired->x-actual->x)*(desired->x-actual->x));
+}*/
+
 void ControlTask_task( void * param)
 {
 #if configUSE_TRACE_FACILITY==1
 	short taskListPre = 100;
 #endif
-	rlseType ident1;
-	//rlseType ident2;
-	regParamType regpar;
 
-	rlse_init(&ident1);
-	//default parameters
-	ident1.th->mat[0] = -1.43380;
-	ident1.th->mat[1] = 0.44817;
-	ident1.th->mat[2] = -0.64161;
-	ident1.th->mat[3] = 0.64161;
+	//short posreg = 5;
 
-	//rlse_init(&ident2);
+	//new point
+	desPos.x = 100;
+	desPos.y = 100;
 
 	while(1)
 	{
@@ -136,6 +181,23 @@ void ControlTask_task( void * param)
 			short regvalues[6];
 			unsigned short values[3];
 			char timestamp = 1;
+
+			/*posreg--;
+			if (posreg == 0)
+			{
+				posreg = 5;
+				if (!namiste)
+				{
+					MotorControlSetSpeed(100.0,0.5*AngleError(&desPos,&myDrive.position));
+					if (Distance(&desPos,&myDrive.position) < 10.0)
+						namiste = 1;
+				}
+				else
+				{
+					MotorControlSetSpeed(0.0,0.0);
+				}
+
+			}*/
 
 			//acc values
 			SlipSend(ID_ACC_STRUCT,(char *) &accData, 2*sizeof(short int));
@@ -169,29 +231,13 @@ void ControlTask_task( void * param)
 			SlipSend(ID_POSITION, (char *) &myDrive.position, 3*sizeof(float));
 
 			// identified parameters
-			SlipSend(ID_IDENT_PARAMS, (char *) &ident1.th->mat[0], 4*sizeof(float));
+			SlipSend(ID_IDENT_PARAMS, (char *) &ident.th->mat[0], 4*sizeof(float));
+
+			SlipSend(ID_TEST_PARAM, (char *) &myDrive.mot1.reg.sum, sizeof(float));
 
 			//timestamp
 			SlipSend(ID_TIME_STAMP,(char *) &timestamp, sizeof(char));
 
-			rlse_update( &ident1, (float) regvalues[0],(float) regvalues[2], ((regvalues[4]>400)||(regvalues[4]<-400)));
-			//rmnc_update( &ident2, (float) regvalues[1],(float) regvalues[3], (regvalues[1]!= 0));
-
-			compute_params(ident1.th,&regpar);
-
-			if ((regpar.Kr > 0.1) && (regpar.Kr < 1))
-			{
-				RegulatorSetPID(&myDrive.mot1.reg,regpar.Kr,regpar.Ti,regpar.Td);
-				RegulatorSetPID(&myDrive.mot2.reg,regpar.Kr,regpar.Ti,regpar.Td);
-
-				//regulator params update
-				SlipSend(ID_REG_PARAMS, (char *) &myDrive.mot1.reg.Kr, 3*sizeof(float));
-			}
-			else
-			{
-				RegulatorSetPID(&myDrive.mot1.reg, 0.5, 0.19, 1.3);
-				RegulatorSetPID(&myDrive.mot2.reg, 0.5, 0.19, 1.3);
-			}
 		}
 		else
 		{

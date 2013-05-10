@@ -8,7 +8,7 @@ short RegulatorAction(struct RegulatorParams * rp, short measurement, unsigned c
 	short siOut;
 
 	//
-	//rp->Dexp = expf(-rp->N/rp->Td);
+	rp->Dexp = expf(-rp->N/rp->Td);
 
 	// measurement store
 	rp->measured = measurement;
@@ -17,12 +17,6 @@ short RegulatorAction(struct RegulatorParams * rp, short measurement, unsigned c
 	rp->error = (rp->desired - rp->measured);
 
 	// modified PID algorithm
-	/*
-	    yt[1] =  (K*((hodnota*w) - in))
-	    		+ Xi2
-	    		+ N*K*( -in +( Xd2*(-1 +exp(-1*(N)/Td) ))) ;
-        Xi2 += ((w-in)*K/Ti) += K/10*(ymin-yt[1]);
-	*/
 
 	// regulator output (action value)
 	flOut = (rp->Kr *((rp->Beta*(float)rp->desired) - (float)rp->measured))
@@ -32,9 +26,17 @@ short RegulatorAction(struct RegulatorParams * rp, short measurement, unsigned c
 	// integration update
 	rp->sum += ( rp->Kr * rp->Ti * rp->error ) + ( rp->Kip * rp->saturationDiff / rp->outputScale );
 
+	if (rp->sum >  10000)
+	{
+		rp->sum =  10000;
+	}
+	if (rp->sum <  -10000)
+	{
+		rp->sum =  -10000;
+	}
+
 	// derivation update Xd2 = ( Xd2 * exp(-1*Ts*N)/Td))-in;
 	rp->der = (rp->der * rp->Dexp) - rp->measured;
-
 
 
 	// manual/automatic mode switch
@@ -56,13 +58,19 @@ short RegulatorAction(struct RegulatorParams * rp, short measurement, unsigned c
 
 	// output non-linearity saturation model
 	if (siOut >  rp->limit)
+	{
 		siOut =  rp->limit;
+	}
 	#if REG_UNIPOLAR_LIMIT == 1
 		if (siOut < 0 )
+		{
 			siOut = 0;
+		}
 	#else
 		if (siOut < -rp->limit)
+		{
 			siOut = -rp->limit;
+		}
 	#endif
 
 	// over-integration protection feedback
@@ -71,7 +79,7 @@ short RegulatorAction(struct RegulatorParams * rp, short measurement, unsigned c
 	return siOut;
 }
 
-void RegulatorReset(struct RegulatorParams * rp)
+void RegulatorResetStates(struct RegulatorParams * rp)
 {
 	// we only clear state variables
 	rp->der = 0;

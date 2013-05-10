@@ -69,7 +69,11 @@ typedef struct matrixTypeStruct
 }
 matrixType;
 
+#ifndef FREERTOS
+// temporary for PC testing
+inline void matPrint( matrixType *mt);
 void matTest( void);
+#endif
 
 // This macro can be used for cell selection \ingroup SimpleMatrix
 #define CELL(matrix,i,j) (matrix->mat[(j)+((i)*matrix->n)])

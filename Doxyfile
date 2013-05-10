@@ -20,7 +20,7 @@
 # iconv built into libc) for the transcoding. See 
 # http://www.gnu.org/software/libiconv for the list of possible encodings.
 
-DOXYFILE_ENCODING      = cp1250
+DOXYFILE_ENCODING      = utf-8
 
 # The PROJECT_NAME tag is a single word (or sequence of words) that should 
 # identify the project. Note that if you do not use Doxywizard you need 
@@ -32,7 +32,7 @@ PROJECT_NAME           = "Robotic vehicle firmware API"
 # This could be handy for archiving the generated documentation or 
 # if some version control system is used.
 
-PROJECT_NUMBER         = "Diploma thesis (xotava01 2013)"
+PROJECT_NUMBER         = "Diploma thesis 2013"
 
 # Using the PROJECT_BRIEF tag one can provide an optional one line description 
 # for a project that appears at the top of each page and should give viewer 
@@ -682,16 +682,10 @@ INPUT                  = StatusLED.h \
                          MotorControl.c \
                          Regulator.h \
                          Regulator.c \
-                         SlipSerial.h \
-                         SlipSerial.c \
                          SimpleMatrix.h \
                          SimpleMatrix.c \
                          RLSE.h \
-                         RLSE.c \
-                         DriveMotion.h \
-                         DriveMotion.c \
-                         CANtest.h \
-                         CANtest.c
+                         RLSE.c
 
 # This tag can be used to specify the character encoding of the source files 
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is 
@@ -699,7 +693,7 @@ INPUT                  = StatusLED.h \
 # into libc) for the transcoding. See http://www.gnu.org/software/libiconv for 
 # the list of possible encodings.
 
-INPUT_ENCODING         = UTF-8
+INPUT_ENCODING         = cp1250
 
 # If the value of the INPUT tag contains directories, you can use the 
 # FILE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp 
