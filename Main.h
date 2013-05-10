@@ -1,9 +1,18 @@
 /*! \mainpage Robotic vehicle API Documentation main Page
- *  \author Lukas Otava
+ *
  *
  * This is the introduction of project.
  *
- * This base firmware contain many modules.
+ *
+ *
+ *
+ * Project structure
+ * -----------------
+ *
+ *
+ * Module structure image
+ *
+ * Modules that is contained in firmware is in Module Tab.
  *
  * Simple project structure
  * ------------------------
@@ -13,16 +22,16 @@
  *  \code{c}
 int main(void)
 {
-	//! inicializace základních periferií systému
+	//! system clock initialization
 	vSystemInit();
 
-	//! HeartBeat úloha indikaèní diody
+	//! HeartBeat
 	if (StatusLEDInit(tskIDLE_PRIORITY+1) != pdPASS)
 	{
 		//error
 	}
 
-	//! SlipSerial komunikace po seriové lince
+	//! SlipSerial communication
 	if (SlipSerialInit(tskIDLE_PRIORITY +2, 57600, 200) != pdPASS)
 	{
 		//error
@@ -34,13 +43,13 @@ int main(void)
 		// error occurred during MotorControl module initialization
 	}
 
-	//! úloha akcelerometru
+	//! accelerometer task
 	if (AccelerometerInit(tskIDLE_PRIORITY +3) != pdPASS)
 	{
 		//error
 	}
 
-	//! úloha øízení  - tady budou kraviny kolem, logování atd
+	//! Control task
 	if ( ControlTaskInit(tskIDLE_PRIORITY +2) != pdPASS)
 	{
 		//error
@@ -69,6 +78,8 @@ int main(void)
 }
 	\endcode
  *
+ * How to add new FreeRTOS task
+ * ----------------------------
  *
  * How to use trace view?
  * -----------------------
@@ -83,7 +94,11 @@ int main(void)
  *
  *
  *
- * TODO: upravit kód regulátoru
+ * Lukáš Otava 2013
+
+ */
+/*
+ *  * TODO: upravit kód regulátoru
  *
  * TODO: upravit RLS
  *
@@ -92,8 +107,8 @@ int main(void)
  * TODO: k èemu bude identifikace? když možná špatnì identifikuje statické zesílení?
  *
  * TODO:
- */
-
+ *
+ * */
 
 /* \file
  * \author Lukas Otava

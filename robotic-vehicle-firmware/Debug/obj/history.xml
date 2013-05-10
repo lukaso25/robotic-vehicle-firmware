@@ -1,106 +1,106 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <history>
    <processor signature="arm-none-eabi-gcc 4.6.2 mingw32 -mcpu=cortex-m3 -mthumb -Wall -ffunction-sections -g -O0 -c -DLM3S8962 -Dgcc -DFREERTOS -I..\..\..\..\..\SP2\robotic-vehicle-firmware\FreeRTOS -I..\..\..\..\..\SP2\robotic-vehicle-firmware\lm3slib\driverlib -I..\..\..\..\..\SP2\robotic-vehicle-firmware\lm3slib -I..\..\..\..\..\SP2\robotic-vehicle-firmware -I..\..\..\..\..\SP2\robotic-vehicle-firmware\cmsis -I..\..\..\..\..\SP2 -I..\..\..\..\.. -I..\..\..\..\..\SP2\robotic-vehicle-firmware\TraceRecorder\Include -I..\..\..\..\..\SP2\robotic-vehicle-firmware\lm3slib\inc -I..\..\..\..\..\SP2\robotic-vehicle-firmware\robotic-vehicle-firmware -I..\..\..\..\..\SP2\robotic-vehicle-firmware\TraceRecorder -I..\..\..\..\..\SP2\robotic-vehicle-firmware\FreeRTOS\include">
-      <target file="gpio.o" lastModified="13e8d72d56f">
+      <target file="gpio.o" lastModified="13e8e0d3721">
          <source file="..\..\..\lm3slib\driverlib\gpio.c" lastModified="13b005d20f0"/>
       </target>
-      <target file="Regulator.o" lastModified="13e8d72dd33">
+      <target file="Regulator.o" lastModified="13e8e0d3f03">
          <source file="..\..\..\Regulator.c" lastModified="13e8a6e4717"/>
       </target>
-      <target file="SlipSerial.o" lastModified="13e8d72d113">
+      <target file="SlipSerial.o" lastModified="13e8e0d329a">
          <source file="..\..\..\SlipSerial.c" lastModified="13e52c08406"/>
       </target>
-      <target file="qei.o" lastModified="13e8d72dca5">
+      <target file="qei.o" lastModified="13e8e0d3e6a">
          <source file="..\..\..\lm3slib\driverlib\qei.c" lastModified="13b005cc71d"/>
       </target>
-      <target file="tasks.o" lastModified="13e8d72d6c5">
+      <target file="tasks.o" lastModified="13e8e0d387a">
          <source file="..\..\..\FreeRTOS\tasks.c" lastModified="13ab1ff018b"/>
       </target>
-      <target file="sysctl.o" lastModified="13e8d72d3a3">
+      <target file="sysctl.o" lastModified="13e8e0d351e">
          <source file="..\..\..\lm3slib\driverlib\sysctl.c" lastModified="13b005cab2a"/>
       </target>
-      <target file="core_cm3.o" lastModified="13e8d72cfb8">
+      <target file="core_cm3.o" lastModified="13e8e0d3128">
          <source file="..\..\..\cmsis\core_cm3.c" lastModified="13e83226c25"/>
       </target>
-      <target file="croutine.o" lastModified="13e8d72dc02">
+      <target file="croutine.o" lastModified="13e8e0d3daf">
          <source file="..\..\..\FreeRTOS\croutine.c" lastModified="13a69545354"/>
       </target>
-      <target file="Hooks.o" lastModified="13e8d72dc55">
+      <target file="Hooks.o" lastModified="13e8e0d3e0f">
          <source file="..\..\..\Hooks.c" lastModified="13e52b1d1e5"/>
       </target>
-      <target file="CANtest.o" lastModified="13e8d72d4e4">
+      <target file="CANtest.o" lastModified="13e8e0d368c">
          <source file="..\..\..\CANtest.c" lastModified="13dd1d6787f"/>
       </target>
-      <target file="i2c.o" lastModified="13e8d72cf64">
+      <target file="i2c.o" lastModified="13e8e0d30d0">
          <source file="..\..\..\lm3slib\driverlib\i2c.c" lastModified="13b8671eba3"/>
       </target>
-      <target file="SimpleMatrix.o" lastModified="13e8d72d5f6">
+      <target file="SimpleMatrix.o" lastModified="13e8e0d37b0">
          <source file="..\..\..\SimpleMatrix.c" lastModified="13e4534058b"/>
       </target>
-      <target file="trcKernel.o" lastModified="13e8d72ce17">
+      <target file="trcKernel.o" lastModified="13e8e0d2f07">
          <source file="..\..\..\TraceRecorder\trcKernel.c" lastModified="137c2d5efe6"/>
       </target>
-      <target file="StatusLED.o" lastModified="13e8d72d836">
+      <target file="StatusLED.o" lastModified="13e8e0d39d2">
          <source file="..\..\..\StatusLED.c" lastModified="13da852c6e1"/>
       </target>
-      <target file="interrupt.o" lastModified="13e8d72d720">
+      <target file="interrupt.o" lastModified="13e8e0d38d3">
          <source file="..\..\..\lm3slib\driverlib\interrupt.c" lastModified="13b005caae8"/>
       </target>
-      <target file="pwm.o" lastModified="13e8d72d195">
+      <target file="pwm.o" lastModified="13e8e0d3319">
          <source file="..\..\..\lm3slib\driverlib\pwm.c" lastModified="13b1f33b6c4"/>
       </target>
-      <target file="heap_2.o" lastModified="13e8d72dd98">
+      <target file="heap_2.o" lastModified="13e8e0d3f6b">
          <source file="..\..\..\FreeRTOS\heap_2.c" lastModified="13a69552655"/>
       </target>
-      <target file="trcPort.o" lastModified="13e8d72d26f">
+      <target file="trcPort.o" lastModified="13e8e0d33ec">
          <source file="..\..\..\TraceRecorder\trcPort.c" lastModified="137be768e0d"/>
       </target>
-      <target file="queue.o" lastModified="13e8d72db8e">
+      <target file="queue.o" lastModified="13e8e0d3d30">
          <source file="..\..\..\FreeRTOS\queue.c" lastModified="13a69554651"/>
       </target>
-      <target file="trcUser.o" lastModified="13e8d72da56">
+      <target file="trcUser.o" lastModified="13e8e0d3bf0">
          <source file="..\..\..\TraceRecorder\trcUser.c" lastModified="13be904841c"/>
       </target>
-      <target file="Accelerometer.o" lastModified="13e8d72d91c">
+      <target file="Accelerometer.o" lastModified="13e8e0d3ab0">
          <source file="..\..\..\Accelerometer.c" lastModified="13e6a83c98b"/>
       </target>
-      <target file="list.o" lastModified="13e8d72d7c2">
+      <target file="list.o" lastModified="13e8e0d396b">
          <source file="..\..\..\FreeRTOS\list.c" lastModified="13a6954dfa7"/>
       </target>
-      <target file="RLSE.o" lastModified="13e8d72d01e">
-         <source file="..\..\..\RLSE.c" lastModified="13e7b9feb3d"/>
+      <target file="RLSE.o" lastModified="13e8e0d3197">
+         <source file="..\..\..\RLSE.c" lastModified="13e8ddc0a17"/>
       </target>
-      <target file="port.o" lastModified="13e8d72dac1">
+      <target file="port.o" lastModified="13e8e0d3c56">
          <source file="..\..\..\FreeRTOS\port.c" lastModified="13aad1b009b"/>
       </target>
-      <target file="can.o" lastModified="13e8d72d487">
+      <target file="can.o" lastModified="13e8e0d361f">
          <source file="..\..\..\lm3slib\driverlib\can.c" lastModified="13be276e1fc"/>
       </target>
-      <target file="uart.o" lastModified="13e8d72d21a">
+      <target file="uart.o" lastModified="13e8e0d339a">
          <source file="..\..\..\lm3slib\driverlib\uart.c" lastModified="13b005cb95f"/>
       </target>
-      <target file="timers.o" lastModified="13e8d72d3f0">
+      <target file="timers.o" lastModified="13e8e0d3570">
          <source file="..\..\..\FreeRTOS\timers.c" lastModified="13ab702f78d"/>
       </target>
-      <target file="syscalls.o" lastModified="13e8d72d88f">
+      <target file="syscalls.o" lastModified="13e8e0d3a28">
          <source file="..\..\..\syscalls\syscalls.c" lastModified="13e8326d8ec"/>
       </target>
-      <target file="cpu.o" lastModified="13e8d72dcdb">
+      <target file="cpu.o" lastModified="13e8e0d3ea6">
          <source file="..\..\..\lm3slib\driverlib\cpu.c" lastModified="13b005cab06"/>
       </target>
-      <target file="adc.o" lastModified="13e8d72d9a3">
+      <target file="adc.o" lastModified="13e8e0d3b39">
          <source file="..\..\..\lm3slib\driverlib\adc.c" lastModified="13b005cb64a"/>
       </target>
-      <target file="startup_lm3s.o" lastModified="13e8d72d75b">
+      <target file="startup_lm3s.o" lastModified="13e8e0d390d">
          <source file="..\..\..\startup\startup_lm3s.c" lastModified="13be8b5ad29"/>
       </target>
-      <target file="MotorControl.o" lastModified="13e8d72cef8">
-         <source file="..\..\..\MotorControl.c" lastModified="13e8d72c53a"/>
+      <target file="MotorControl.o" lastModified="13e8e0d3061">
+         <source file="..\..\..\MotorControl.c" lastModified="13e8dd74cea"/>
       </target>
-      <target file="trcBase.o" lastModified="13e8d72d300">
+      <target file="trcBase.o" lastModified="13e8e0d347e">
          <source file="..\..\..\TraceRecorder\trcBase.c" lastModified="137c608f7de"/>
       </target>
-      <target file="Main.o" lastModified="13e8d72d09e">
+      <target file="Main.o" lastModified="13e8e0d321d">
          <source file="..\..\..\Main.c" lastModified="13e8d5535c1"/>
       </target>
    </processor>

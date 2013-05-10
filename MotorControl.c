@@ -195,10 +195,10 @@ signed long MotorControlInit( unsigned long priority)
 	rlse_init(&ident);
 
 	//default parameters
-	ident.th->mat[0] = -1.43380;
+	/*ident.th->mat[0] = -1.43380;
 	ident.th->mat[1] = 0.44817;
 	ident.th->mat[2] = -0.64161;
-	ident.th->mat[3] = 0.64161;
+	ident.th->mat[3] = 0.64161;*/
 
 	InitADC();
 
@@ -346,7 +346,7 @@ void MotorControl_task( void * param)
 			case MOTOR_MANUAL:
 				if (myDrive.selftuning_state == SELFTUNING_RUNING)
 				{
-					motor->reg.desired = ident_speed*1500;
+					MotorControlSetWheelSpeed(ident_speed*1200,-ident_speed*1200);
 				}
 				pwm = RegulatorAction(&motor->reg, speed.value, 1);
 				break;
@@ -449,20 +449,21 @@ void MotorControl_task( void * param)
 			case SELFTUNUNG_START:
 				MotorControlSetWheelSpeed(0,0);
 				MotorControlSetState(MOTOR_MANUAL);
-				tuningTime = 80;
+				rlse_reinit(&ident);
+				tuningTime = 70;
 				myDrive.selftuning_state = SELFTUNING_RUNING;
 				break;
 			case SELFTUNING_RUNING:
 				ident_speed = ((tuningTime/50)%2)*2-1;
 				tuningTime++;
-				if (tuningTime > 400)
+				if (tuningTime > 270)
 					myDrive.selftuning_state = SELFTUNING_END;
 				break;
 			case SELFTUNING_END:
 
 				compute_params(ident.th,&regpar);
 
-				if ((regpar.Kr > 0.01) && (regpar.Kr < 10))
+				if ((regpar.Kr > 0.01) && (regpar.Kr < 2))
 				{
 					RegulatorSetPID(&myDrive.mot1.reg,regpar.Kr,regpar.Ti,regpar.Td);
 					RegulatorSetPID(&myDrive.mot2.reg,regpar.Kr,regpar.Ti,regpar.Td);
@@ -486,7 +487,7 @@ void MotorControl_task( void * param)
 				break;
 
 			}
-			rlse_update( &ident, (float) myDrive.mot1.reg.measured,(float) myDrive.mot1.reg.action, myDrive.selftuning_state == SELFTUNING_RUNING);
+			rlse_update( &ident, (float) myDrive.mot2.reg.measured,(float) myDrive.mot2.reg.action, myDrive.selftuning_state == SELFTUNING_RUNING);
 			//rlse_update( &ident, (float) myDrive.mot1.reg.measured,(float) myDrive.mot1.reg.action, ((myDrive.mot1.reg.der>500)||(myDrive.mot1.reg.der<-500)));
 
 

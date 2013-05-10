@@ -70,13 +70,23 @@ typedef struct matrixTypeStruct
 matrixType;
 
 #ifndef FREERTOS
-// temporary for PC testing
-inline void matPrint( matrixType *mt);
+
 void matTest( void);
 #endif
 
-// This macro can be used for cell selection \ingroup SimpleMatrix
-#define CELL(matrix,i,j) (matrix->mat[(j)+((i)*matrix->n)])
+
+/*! \brief Printing function for PC testing
+ * \ingroup SimpleMatrix
+ * \param mt Pointer to the matrix to print
+ */
+inline void matPrint( matrixType *mt);
+
+
+//! \brief This macro can be used for the matrix cell access \ingroup SimpleMatrix
+//! \param marix Pointer to matrix
+//! \param i The row matrix index
+//! \param j The column matrix index
+#define CELL(matrix,i,j)  (matrix->mat[(j)+((i)*matrix->n)])
 
 /*! \brief This function allocate memory for one matrix with specified dimensions.
  *  \param row This parameter express count of matrix rows, must be >0.
@@ -103,8 +113,8 @@ inline void matFill(matrixType *res, matrixValType value);
 inline void matEye(matrixType* res, matrixValType value);
 
 /*! \brief This function add matrix to matrix.
- *  \param a Result matrix.
- *  \param b Source matrix that will be added to matrix \param a.
+ *  \param a Result matrix
+ *  \param b Source matrix that will be added to matrix \param a
  *  \return Return 0 if everything is OK.
  *  \ingroup SimpleMatrix */
 inline matrixSizeType matAdd(matrixType *a, matrixType *b);

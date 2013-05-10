@@ -11,7 +11,7 @@ matrixType* temp_nn_2 = NULL;
 void rlse_init( rlseType* rlses)
 {
 	//iterator variable declaration
-	matrixSizeType i;
+	//matrixSizeType i;
 
 	// individual rls matrix allocation
 	rlses->P 	= matAlloc(RLSE_SYSTEM_PARAMETERS,RLSE_SYSTEM_PARAMETERS);
@@ -33,6 +33,23 @@ void rlse_init( rlseType* rlses)
 		temp_nn		= matAlloc(RLSE_SYSTEM_PARAMETERS,RLSE_SYSTEM_PARAMETERS);
 		temp_nn_2	= matAlloc(RLSE_SYSTEM_PARAMETERS,RLSE_SYSTEM_PARAMETERS);
 	}
+
+	rlse_reinit(rlses);
+	/*// matrix initialization
+	matEye(rlses->th, 1.0);
+	matEye(rlses->P,  RLSE_P_MATRIX_INIT);
+
+	// past value vector init
+	for( i = 0; i < (RLSE_SYSTEM_PARAMETERS-1); i++)
+	{
+		rlses->past_values[i] = 0;
+	}*/
+}
+
+void rlse_reinit( rlseType* rlses)
+{
+	//iterator variable declaration
+	matrixSizeType i;
 
 	// matrix initialization
 	matEye(rlses->th, 1.0);
@@ -156,8 +173,14 @@ void compute_params( matrixType *th, regParamType *reg)
 	reg->Kkrit = KP1;
 	reg->Tkrit = Tk;
 
+
 	//Z-N návrh
+	reg->Kr = 0.3* KP1;
+	reg->Ti = REG_PERIOD/(Tk);
+	reg->Td = (0.125/REG_PERIOD * Tk);
+
+	/*//Z-N návrh
 	reg->Kr = 0.6* KP1;
 	reg->Ti = REG_PERIOD/(0.5*Tk);
-	reg->Td = (0.125/REG_PERIOD * Tk);
+	reg->Td = (0.125/REG_PERIOD * Tk);*/
 }

@@ -6,9 +6,31 @@
  * \date 2013
  * \defgroup Regulator Regulator module
  *
- * This module contain modification PID (PSD) algorithm based regulator with structure that hold actual values and parameters.
+ * This module contain modified PID (PSD) algorithm based regulator called Beta-PSD structure (from prof. Petr Pivonka course). This kind of regulator has roots in Takahashi PID modification.
+ * All state variables and parameters are stored in RegulatorParams structure.
  *
- * There is basic version of PID (PSD) algorithm, that is selected by macro REG_VERSION 1.
+ * Example usage:
+   \code{c}
+  	struct RegulatorParams REG;
+
+	RegulatorResetStates(&reg);
+
+	RegulatorSetPID(&reg, 0.5, 0.19, 1.3);
+
+	RegulatorSetParams(&reg, 0.9, 0.5, 1.0);
+
+	RegulatorSetScaleLimit(&reg,(pwm_period/MOTOR_PULSES_PER_VOLT/8.0),pwm_period);
+
+	while (1)
+	{
+		waitNewData();
+		RegulatorAction(reg)
+	}
+	\endcode
+ *
+ * State diagram of the modified version of PSD regulator:
+ *
+ * \image html regulator.png
  *
  * Another version called Beta-PSD structure (from prof. Petr Pivonka course) is selected by macro REG_VERSION 2.
  *  There are some other parameters N, Beta and Kip, that should be set-up by \function RegulatorSetParam().

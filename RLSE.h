@@ -8,7 +8,7 @@
 
 #define RLSE_MINIMAL_UPDATES (19)
 #define RLSE_EXP_FORGETING_COEF (0.98)
-#define RLSE_P_MATRIX_INIT	(1.0e3)
+#define RLSE_P_MATRIX_INIT	(1.0e8)
 #define RLSE_IMV_TYPE (0)
 
 
