@@ -34,16 +34,8 @@ void rlse_init( rlseType* rlses)
 		temp_nn_2	= matAlloc(RLSE_SYSTEM_PARAMETERS,RLSE_SYSTEM_PARAMETERS);
 	}
 
+	// default values initialization
 	rlse_reinit(rlses);
-	/*// matrix initialization
-	matEye(rlses->th, 1.0);
-	matEye(rlses->P,  RLSE_P_MATRIX_INIT);
-
-	// past value vector init
-	for( i = 0; i < (RLSE_SYSTEM_PARAMETERS-1); i++)
-	{
-		rlses->past_values[i] = 0;
-	}*/
 }
 
 void rlse_reinit( rlseType* rlses)

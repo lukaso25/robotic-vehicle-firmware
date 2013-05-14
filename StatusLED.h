@@ -13,17 +13,13 @@
  * */
 
 #include "FreeRTOS.h"
+#include "CommonDefs.h"
 
 //! count of the error kinds
 #define ERROR_COUNT 10
 
 //! limit number of recorded error per kind
 #define ERROR_LIMIT 200
-
-//! Status LED HW connection definitions LED GPIO pin
-#define LED_RED			(GPIO_PIN_2)
-//! Status LED HW connection definitions LED port
-#define LED_RED_PORT	(GPIO_PORTF_BASE)
 
 //! \brief Error code definitions - expresses number of flashes
 /// \ingroup StatusLED

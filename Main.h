@@ -9,6 +9,30 @@
  * Project structure
  * -----------------
  *
+ *\dot
+  digraph example {
+      node [shape=record, fontname=Helvetica, fontsize=12];
+      fr [ label="FreeRTOS"];
+      dl [ label="DriverLib"];
+      cd [ label="CommonDefs" URL="\ref CommonDefs"];
+      sm [ label="SimpleMatrix" URL="\ref SimpleMatrix"];
+      sl [ label="StatusLED" URL="\ref StatusLED"];
+      rlse [ label="RLSE" URL="\ref RLSE"];
+      reg [ label="Regulator" URL="\ref Regulator"];
+      mot [ label="MotorControl" URL="\ref MotorControl"];
+      acc [ label="Accelerometer" URL="\ref Accelerometer"];
+      can [ label="CANtest" URL="\ref CANtest"];
+      sl -> fr [ arrowhead="open", style="dashed" ];
+      sl -> dl [ arrowhead="open", style="dashed" ];
+      sm -> fr [ arrowhead="open", style="dashed" ];
+      rlse -> sm [ arrowhead="open", style="dashed" ];
+      mot -> rlse [ arrowhead="open", style="dashed" ];
+      mot -> reg [ arrowhead="open", style="dashed" ];
+      mot -> sl [ arrowhead="open", style="dashed" ];
+      acc -> sl [ arrowhead="open", style="dashed" ];
+      can -> sl [ arrowhead="open", style="dashed" ];
+  }
+  \enddot
  *
  * Module structure image
  *
@@ -80,6 +104,10 @@ int main(void)
  *
  * How to add new FreeRTOS task
  * ----------------------------
+ *
+ * How to change MCU pin mapping
+ * -----------------------------
+ * Each used microcontroller pin is defined in CommonDefs.h.
  *
  * How to use trace view?
  * -----------------------

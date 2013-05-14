@@ -102,9 +102,9 @@
     <File name="syscalls/syscalls.c" path="syscalls/syscalls.c" type="1"/>
     <File name="SimpleMatrix.c" path="SimpleMatrix.c" type="1"/>
     <File name="lm3slib/driverlib/can.h" path="lm3slib/driverlib/can.h" type="1"/>
-    <File name="TraceRecorder/trcPort.c" path="TraceRecorder/trcPort.c" type="1"/>
     <File name="FreeRTOS/list.c" path="FreeRTOS/list.c" type="1"/>
     <File name="Hooks.c" path="Hooks.c" type="1"/>
+    <File name="TraceRecorder/trcPort.c" path="TraceRecorder/trcPort.c" type="1"/>
     <File name="RLSE.h" path="RLSE.h" type="1"/>
     <File name="FreeRTOS/include/portmacro.h" path="FreeRTOS/include/portmacro.h" type="1"/>
     <File name="lm3slib/driverlib/qei.c" path="lm3slib/driverlib/qei.c" type="1"/>
@@ -151,9 +151,9 @@
     <File name="SlipSerial.h" path="SlipSerial.h" type="1"/>
     <File name="lm3slib" path="" type="2"/>
     <File name="lm3slib/inc/hw_types.h" path="lm3slib/inc/hw_types.h" type="1"/>
-    <File name="trcPort.h" path="trcPort.h" type="1"/>
     <File name="lm3slib/driverlib/rom_map.h" path="lm3slib/driverlib/rom_map.h" type="1"/>
     <File name="FreeRTOS/timers.c" path="FreeRTOS/timers.c" type="1"/>
+    <File name="trcPort.h" path="trcPort.h" type="1"/>
     <File name="TraceRecorder/trcKernel.c" path="TraceRecorder/trcKernel.c" type="1"/>
     <File name="startup" path="" type="2"/>
     <File name="lm3slib/inc/hw_qei.h" path="lm3slib/inc/hw_qei.h" type="1"/>
@@ -171,22 +171,22 @@
     <File name="FreeRTOS/include/list.h" path="FreeRTOS/include/list.h" type="1"/>
     <File name="lm3slib/driverlib/qei.h" path="lm3slib/driverlib/qei.h" type="1"/>
     <File name="FreeRTOS/include/portable.h" path="FreeRTOS/include/portable.h" type="1"/>
-    <File name="FreeRTOS/include" path="" type="2"/>
     <File name="lm3slib/driverlib/interrupt.h" path="lm3slib/driverlib/interrupt.h" type="1"/>
+    <File name="FreeRTOS/include" path="" type="2"/>
     <File name="FreeRTOS/include/timers.h" path="FreeRTOS/include/timers.h" type="1"/>
     <File name="CANtest.h" path="CANtest.h" type="1"/>
     <File name="lm3slib/driverlib/cpu.h" path="lm3slib/driverlib/cpu.h" type="1"/>
     <File name="FreeRTOS/include/FreeRTOS.h" path="FreeRTOS/include/FreeRTOS.h" type="1"/>
     <File name="TraceRecorder/Include/trcBase.h" path="TraceRecorder/Include/trcBase.h" type="1"/>
-    <File name="TraceRecorder/Include/trcHooks.h" path="TraceRecorder/Include/trcHooks.h" type="1"/>
     <File name="syscalls" path="" type="2"/>
+    <File name="TraceRecorder/Include/trcHooks.h" path="TraceRecorder/Include/trcHooks.h" type="1"/>
     <File name="lm3slib/inc/hw_gpio.h" path="lm3slib/inc/hw_gpio.h" type="1"/>
     <File name="FreeRTOS/croutine.c" path="FreeRTOS/croutine.c" type="1"/>
     <File name="StatusLED.h" path="StatusLED.h" type="1"/>
     <File name="lm3slib/driverlib/interrupt.c" path="lm3slib/driverlib/interrupt.c" type="1"/>
     <File name="CommonDefs.h" path="CommonDefs.h" type="1"/>
-    <File name="TraceRecorder" path="" type="2"/>
     <File name="FreeRTOS" path="" type="2"/>
+    <File name="TraceRecorder" path="" type="2"/>
     <File name="FreeRTOSConfig.h" path="FreeRTOSConfig.h" type="1"/>
     <File name="TraceRecorder/Include" path="" type="2"/>
   </Files>

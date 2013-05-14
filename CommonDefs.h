@@ -1,6 +1,15 @@
 #ifndef  __COMMON_DEFS__
 #define  __COMMON_DEFS__
 
+/*! \file CommonDefs.h
+ * \author Lukas Otava
+ * \date 2013
+ * \defgroup CommonDefs CommonDefs module
+ *
+ * This file contain common data structures definitions and microcontroller pin mapping macros
+ *
+ */
+
 #include "inc/hw_ints.h"
 #include "inc/hw_memmap.h"
 #include "inc/hw_types.h"
@@ -33,10 +42,13 @@ struct Position
 };
 
 
+//! Status LED HW connection definitions LED GPIO pin
+#define LED_RED			(GPIO_PIN_2)
+//! Status LED HW connection definitions LED port
+#define LED_RED_PORT	(GPIO_PORTF_BASE)
+
 //! HW definitions I2C
 
-
-//#define I2C_PERIPHERAL (SYSCTL_PERIPH_I2C)
 
 //! I2C SCL PIN
 #define I2C_SCL				(GPIO_PIN_2)

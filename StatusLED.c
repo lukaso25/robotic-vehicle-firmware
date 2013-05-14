@@ -14,7 +14,7 @@
 #include "semphr.h"
 #include "queue.h"
 
-#include "CommonDefs.h"
+
 
 //! array of errors
 short errors[ERROR_COUNT];
