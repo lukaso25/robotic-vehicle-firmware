@@ -1,4 +1,3 @@
-
 #include "CANtest.h"
 
 #include "FreeRTOS.h"
@@ -14,6 +13,11 @@
 #include "driverlib/sysctl.h"
 #include "driverlib/interrupt.h"
 #include "driverlib/can.h"
+
+signed long CANtestInit( unsigned long priority)
+{
+	return xTaskCreate(CANtest_task, (signed portCHAR *) "CAN", 256, NULL, priority, NULL);
+}
 
 void CANtest_task( void * param)
 {
@@ -74,8 +78,8 @@ void CANtest_task( void * param)
 	// never ending loop handling CAN message reception and transmission modified packets
 	while(1)
 	{
-		//waitong for new message int object according to mask
-		while((CANStatusGet(CAN0_BASE, CAN_STS_NEWDAT) & (3<<3)) == 0) //! need to be modified
+		//waiting for new message int object according to mask
+		while((CANStatusGet(CAN0_BASE, CAN_STS_NEWDAT) & (3<<3)) == 0)
 		{
 			//dummy delay - we don't require best response time - this decrease CPU load
 			vTaskDelay(100);

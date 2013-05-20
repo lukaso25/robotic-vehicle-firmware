@@ -7,7 +7,7 @@
  * \date 2013
  * \defgroup StatusLED StatusLED module
  *
- * This module is indicating a various status of system by the LED flashes.
+ * This module is indicating multiple status of system at same time by the LED flashes.
  * Error type is specified according flash count.
  *
  * */
@@ -51,7 +51,7 @@ enum Err
  * \return pdPass value is returned if module task was created correctly
  * \warning This function require FreeRTOS environment
  */
-signed portBASE_TYPE StatusLEDInit( unsigned portBASE_TYPE priority);
+signed long StatusLEDInit( unsigned long priority);
 
 
 /*!

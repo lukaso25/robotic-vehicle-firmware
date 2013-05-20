@@ -22,17 +22,13 @@
 #include "Regulator.h"
 #include "StatusLED.h"
 
+// Free RTOS objects
 xQueueHandle xSpeedActQ;
 xQueueHandle xMotorPWMQ1;
 xQueueHandle xMotorPWMQ2;
-
 xSemaphoreHandle xWaitData;
 
-void PWMFault_IRQHandler( void)
-{
-	//error
-}
-
+// ADC initialization finction
 void InitADC( void)
 {
 	//  ADC
@@ -40,6 +36,7 @@ void InitADC( void)
 
 	ADCHardwareOversampleConfigure(ADC0_BASE, 64);
 
+	// Sequence configuration
 	ADCSequenceDisable(ADC0_BASE, 0);
 	ADCSequenceConfigure(ADC0_BASE,0, ADC_TRIGGER_PROCESSOR, 0);
 	ADCSequenceStepConfigure(ADC0_BASE,0,0,(ADC_CTL_CH0));
@@ -50,13 +47,19 @@ void InitADC( void)
 	ADCProcessorTrigger(ADC0_BASE, 0);
 }
 
+// This function start ADC measurement
 long MeasureADC( void)
 {
 	unsigned long adcval[3];
+	unsigned long i = 0;
 	long count;
-
+	// now, we wait for new data
 	while(!ADCIntStatus(ADC0_BASE, 0, false))
-	{};
+	{
+		vTaskDelay(1);
+		if (i++ == 10)
+			return 0;
+	};
 
 	count = ADCSequenceDataGet(ADC0_BASE,0,&adcval[0]);
 	ADCProcessorTrigger(ADC0_BASE, 0);
@@ -65,7 +68,6 @@ long MeasureADC( void)
 
 	//floating average
 	myDrive.batt_voltage = myDrive.batt_voltage + ((short) adcval[2] - myDrive.batt_voltage)/10;
-	//myDrive.batt_voltage = (short) adcval[2];
 
 	return count;
 }
@@ -73,12 +75,13 @@ long MeasureADC( void)
 unsigned long pwm_period = 0;
 unsigned long qei_period = 0;
 
-rlseType ident;
+#if MOTORCONTROL_IDENT_ENABLE == 1
+rlsType ident;
+#endif
 
 signed long MotorControlInit( unsigned long priority)
 {
 	// variables
-
 	pwm_period =  SysCtlClockGet()/MOTOR_PWM_FREQ;
 	qei_period = (SysCtlClockGet()/SPEED_REG_FREQ)-1;
 
@@ -95,8 +98,7 @@ signed long MotorControlInit( unsigned long priority)
 	GPIOPinTypePWM(BRIDGE1_IN1_PORT,BRIDGE1_IN1);
 	GPIOPinTypePWM(BRIDGE1_IN2_PORT,BRIDGE1_IN2);
 
-
-	//konfigurace generátorù - možnosti úprav synchronizace (PWM_GEN_MODE_SYNC | PWM_GEN_MODE_GEN_SYNC_GLOBAL | PWM_GEN_MODE_GEN_SYNC_LOCAL)
+	// PWM generators configuration
 	PWMGenConfigure(PWM_BASE, PWM_GEN_0, PWM_GEN_MODE_DOWN | PWM_GEN_MODE_NO_SYNC | PWM_GEN_MODE_DBG_RUN);
 	PWMGenConfigure(PWM_BASE, PWM_GEN_1, PWM_GEN_MODE_DOWN | PWM_GEN_MODE_NO_SYNC | PWM_GEN_MODE_DBG_RUN);
 
@@ -116,13 +118,8 @@ signed long MotorControlInit( unsigned long priority)
 
 
 	// output matrix
-	//PWMOutputState(PWM_BASE, PWM_OUT_0_BIT | PWM_OUT_1_BIT | PWM_OUT_2_BIT | PWM_OUT_3_BIT, false);// dopøedu
-	//PWMOutputState(PWM_BASE, PWM_OUT_1_BIT | PWM_OUT_2_BIT, true);// dopøedu
-	//PWMOutputState(PWM_BASE, PWM_OUT_0_BIT | PWM_OUT_3_BIT, true);// dopøedu
-	//PWMOutputState(PWM_BASE, PWM_OUT_1_BIT | PWM_OUT_2_BIT, false);
 
 	// inverted output select
-	//PWMOutputInvert(PWM_BASE, (PWM_OUT_0_BIT | PWM_OUT_1_BIT ), true);
 
 	// enable output
 	GPIOPinTypeGPIOOutput( MOTOR_SHIFTER_OE_PORT, MOTOR_SHIFTER_OE);
@@ -146,7 +143,7 @@ signed long MotorControlInit( unsigned long priority)
 
 
 	//************* QEI
-	// Povolení hodin periferiím
+	// Clock management configuration
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC|SYSCTL_PERIPH_GPIOE);
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_QEI0|SYSCTL_PERIPH_QEI1);
 
@@ -165,26 +162,30 @@ signed long MotorControlInit( unsigned long priority)
 	QEIVelocityConfigure(QEI1_BASE,QEI_VELDIV_1,qei_period);
 	QEIVelocityEnable(QEI1_BASE);
 
-	//
-	QEIIntEnable(QEI0_BASE,QEI_INTTIMER);// pøerušení od èasovaèe
-	QEIIntEnable(QEI1_BASE,QEI_INTTIMER); // QEI_INTDIR|QEI_INTERROR
+	// Interrupts
+	QEIIntEnable(QEI0_BASE,QEI_INTTIMER);
+	QEIIntEnable(QEI1_BASE,QEI_INTTIMER);
 
 	QEIEnable(QEI0_BASE);
 	QEIEnable(QEI1_BASE);
 
-	IntPrioritySet(INT_QEI0,(5<<5)); // nastavit QEI0 vyšší prioritu s ohledem na MAX_INPERRUPT PRIO
+	// interrupts priority
+	IntPrioritySet(INT_QEI0,(5<<5));
 	IntPrioritySet(INT_QEI1,(6<<5));
 	IntEnable(INT_QEI0);
 	IntEnable(INT_QEI1);
 
 
+	// Motor Control Module internal variables initialization
+	MotorControlSetState(MOTOR_STOP);
 	MotorControlOdometryReset();
 
+	// Regulator initial parameters
 	RegulatorResetStates(&myDrive.mot1.reg);
 	RegulatorResetStates(&myDrive.mot2.reg);
 
-	RegulatorSetPID(&myDrive.mot1.reg, 0.5, 0.19, 1.3);
-	RegulatorSetPID(&myDrive.mot2.reg, 0.5, 0.19, 1.3);
+	RegulatorSetPID(&myDrive.mot1.reg, MOTORCONTROL_P, MOTORCONTROL_TI, 1.0);
+	RegulatorSetPID(&myDrive.mot2.reg, MOTORCONTROL_P, MOTORCONTROL_TI, 1.0);
 
 	RegulatorSetParams(&myDrive.mot1.reg, 0.9, 0.5, 1.0);
 	RegulatorSetParams(&myDrive.mot2.reg, 0.9, 0.5, 1.0);
@@ -192,44 +193,44 @@ signed long MotorControlInit( unsigned long priority)
 	RegulatorSetScaleLimit(&myDrive.mot1.reg,(pwm_period/MOTOR_PULSES_PER_VOLT/8.0),pwm_period);
 	RegulatorSetScaleLimit(&myDrive.mot2.reg,(pwm_period/MOTOR_PULSES_PER_VOLT/8.0),pwm_period);
 
-	rlse_init(&ident);
+#if MOTORCONTROL_IDENT_ENABLE == 1
+	//identification initialization
+	RLS_init(&ident);
+#endif
 
-	//default parameters
-	/*ident.th->mat[0] = -1.43380;
-	ident.th->mat[1] = 0.44817;
-	ident.th->mat[2] = -0.64161;
-	ident.th->mat[3] = 0.64161;*/
-
+	// ADC initialization
 	InitADC();
 
-	// vytvoøíme fronty pro senzory a aktory
+	// FreeRTOS objects
 	xSpeedActQ  = xQueueCreate( 2, ( unsigned portBASE_TYPE ) sizeof( struct SensorActor) );
 	xMotorPWMQ1 = xQueueCreate( 1, ( unsigned portBASE_TYPE ) sizeof( short ) );
 	xMotorPWMQ2 = xQueueCreate( 1, ( unsigned portBASE_TYPE ) sizeof( short ) );
 
-	//
+	// motor queue first values
 	short pwm = 0;
 	if (xQueueSend(xMotorPWMQ1, &pwm, 10) != pdTRUE)
 	{
-
+		MotorControlSetState(MOTOR_FAILURE);
 	}
 	if (xQueueSend(xMotorPWMQ2, &pwm, 10) != pdTRUE)
 	{
-
+		MotorControlSetState(MOTOR_FAILURE);
 	}
 
+	// binary semaphore for synchronization
 	vSemaphoreCreateBinary( xWaitData );
 	if( xWaitData == NULL )
 	{
-
+		MotorControlSetState(MOTOR_FAILURE);
 	}
-	MotorControlSetState(MOTOR_RUNNING);
 
+	// task creation
 	return xTaskCreate(MotorControl_task, (signed portCHAR *) "MOTOR", 256, NULL, priority , NULL);
 }
 
 void MotorControlSetState( enum MotorState st)
 {
+	//seitch to new state with HW setting
 	switch (st)
 	{
 	case MOTOR_RUNNING:
@@ -246,7 +247,7 @@ void MotorControlSetState( enum MotorState st)
 		myDrive.state = st;
 		break;
 	default:
-		myDrive.state = MOTOR_FAILURE;
+		st = MOTOR_FAILURE;
 	case MOTOR_FAILURE:
 	case MOTOR_SHUTDOWN:
 		GPIOPinTypeGPIOOutput( MOTOR_SHIFTER_OE_PORT, MOTOR_SHIFTER_OE);
@@ -258,41 +259,30 @@ void MotorControlSetState( enum MotorState st)
 	}
 }
 
-signed portBASE_TYPE MotorControlWaitData(portTickType timeout)
+signed long MotorControlWaitData(portTickType timeout)
 {
+	// function waiting for a new data
 	return xSemaphoreTake( xWaitData, timeout );
 }
 
-void MotorControlSetSelfTuning( enum SelFTuningState  state)
-{
-	//input data validation
-	if ((state == SELFTUNUNG_START) || (state == SELFTUNING_STOP))
-	{
-		// new current state setting
-		myDrive.selftuning_state = state;
-	}
-}
-enum SelFTuningState MotorControlGetSelfTuning( void)
-{
-	return myDrive.selftuning_state;
-}
 
 void MotorControlSetWheelSpeed(signed short v1, signed short v2)
 {
-	// saturation??
-	//we only transfer input paramtrs into regulator structure
+	//we only transfer input parameters into regulator structure
 	myDrive.mot1.reg.desired = v1;
 	myDrive.mot2.reg.desired = v2;
 }
 
 void MotorControlSetSpeed(float v, float w)
 {
+	//this function convert speed of drive into speed of wheels
 	myDrive.mot1.reg.desired = (short)( 0.5 / WHEEL_DISTANCE_PEER_QEI_PULSE * ( (2.0*v*(1.0/SPEED_REG_FREQ)) + (w*(1.0/SPEED_REG_FREQ)*WHEEL_DISTANCE) ));
 	myDrive.mot2.reg.desired = (short)(-0.5 / WHEEL_DISTANCE_PEER_QEI_PULSE * ( (2.0*v*(1.0/SPEED_REG_FREQ)) - (w*(1.0/SPEED_REG_FREQ)*WHEEL_DISTANCE) ));
 }
 
 void MotorControlOdometryReset( void)
 {
+	// odometry initialization
 	myDrive.position.theta = 0.0;
 	myDrive.position.x = 0.0;
 	myDrive.position.y = 0.0;
@@ -304,11 +294,11 @@ enum MotorState MotorControlGetState( void)
 	return myDrive.state;
 }
 
-short tuningTime = 0;
-short ident_speed = 0;
+
 
 void MotorControl_task( void * param)
 {
+	// motor control temporary variables
 	struct SensorActor speed;
 	short pwm = 0;
 	char lastMotor = 0;
@@ -316,15 +306,17 @@ void MotorControl_task( void * param)
 	// dummy delay
 	vTaskDelay(100);
 
+	// forever
 	while(1)
 	{
+		// we receive now  from input queue
 		if( xQueueReceive(xSpeedActQ, &speed, 100) == pdTRUE )
 		{
 			xQueueHandle pwmQue;
 			struct MotorControl * motor;
 
+			// we identify measurement
 			lastMotor = speed.id;
-
 			if (lastMotor == MOTOR_1)
 			{
 				pwmQue = xMotorPWMQ1;
@@ -337,17 +329,15 @@ void MotorControl_task( void * param)
 			}
 			else
 			{
+				// there is an error
 				MotorControlSetState(MOTOR_FAILURE);
 				SetError(ERROR_MOTOR);
 			}
 
+			// according to state we compute action
 			switch (myDrive.state)
 			{
 			case MOTOR_MANUAL:
-				if (myDrive.selftuning_state == SELFTUNING_RUNING)
-				{
-					MotorControlSetWheelSpeed(ident_speed*1200,-ident_speed*1200);
-				}
 				pwm = RegulatorAction(&motor->reg, speed.value, 1);
 				break;
 			case MOTOR_RUNNING:
@@ -372,6 +362,7 @@ void MotorControl_task( void * param)
 			default://error
 				motor->reg.measured = speed.value;
 				pwm = 0;
+				// there is an error
 				break;
 			}
 
@@ -383,25 +374,23 @@ void MotorControl_task( void * param)
 		}
 		else
 		{
+			// there is an error
 			MotorControlSetState(MOTOR_FAILURE);
 			SetError(ERROR_MOTOR);
-			//timeout
-			//fatal error
 		}
 
+		// after both of pwm actions
 		if (lastMotor == MOTOR_2)
 		{
-			regParamType regpar;
-
 			float scale;
 			float delta_odo;
 			float delta_phi;
 
-
+			// analog values measurement
 			MeasureADC();
 
-			//! odometry code
-#if MOTOR_ENABLE_ODOMETRY == 1
+			// odometry code
+#if MOTORCONTROL_ENABLE_ODOMETRY == 1
 			// position difference
 			delta_odo = (float)(  myDrive.mot1.reg.measured - myDrive.mot2.reg.measured ) * WHEEL_DISTANCE_PEER_QEI_PULSE / 2.0;
 			delta_phi = (float)( -myDrive.mot1.reg.measured - myDrive.mot2.reg.measured ) * WHEEL_DISTANCE_PEER_QEI_PULSE / WHEEL_DISTANCE ;
@@ -412,7 +401,7 @@ void MotorControl_task( void * param)
 			myDrive.position.theta += delta_phi;
 #endif
 
-			//! H-bridges fail status check
+			// H-bridges fail status check
 			if ( GPIOPinRead(BRIDGE0_FS_PORT,BRIDGE0_FS)==0 )
 			{
 				MotorControlSetState(MOTOR_FAILURE);
@@ -423,7 +412,7 @@ void MotorControl_task( void * param)
 				MotorControlSetState(MOTOR_FAILURE);
 			}
 
-			//! Minimal battery voltage check
+			// Minimal battery voltage check
 			if (myDrive.batt_voltage < (short)VOLTAGE2ADC(BATERRY_MINIMAL_VOLTAGE))
 			{
 				SetError(ERROR_BATT);
@@ -431,67 +420,27 @@ void MotorControl_task( void * param)
 			}
 			else
 			{
-				// hodnota zesílení regulátoru
+				// scale value computation
 				scale = (short)pwm_period / (ADC2VOLTAGE(MOTOR_PULSES_PER_VOLT)) / myDrive.batt_voltage;
 
-				// adaptace dle bterie
-				if (scale < 2.0)
+				// battery voltage adaptation
+				if (scale > 2.0)
 				{
-					RegulatorSetScaleLimit(&myDrive.mot1.reg, scale, pwm_period);
-					RegulatorSetScaleLimit(&myDrive.mot2.reg, scale, pwm_period);
+					scale = 2.0;
 				}
+				// scale setting
+				RegulatorSetScaleLimit(&myDrive.mot1.reg, scale, pwm_period);
+				RegulatorSetScaleLimit(&myDrive.mot2.reg, scale, pwm_period);
 
 				ClearError(ERROR_BATT);// redundant
 			}
 
-			switch (myDrive.selftuning_state)
-			{
-			case SELFTUNUNG_START:
-				MotorControlSetWheelSpeed(0,0);
-				MotorControlSetState(MOTOR_MANUAL);
-				rlse_reinit(&ident);
-				tuningTime = 70;
-				myDrive.selftuning_state = SELFTUNING_RUNING;
-				break;
-			case SELFTUNING_RUNING:
-				ident_speed = ((tuningTime/50)%2)*2-1;
-				tuningTime++;
-				if (tuningTime > 270)
-					myDrive.selftuning_state = SELFTUNING_END;
-				break;
-			case SELFTUNING_END:
+			// RLSE identification
+#if MOTORCONTROL_IDENT_ENABLE == 1
+			RLS_update( &ident, (float) myDrive.mot2.reg.measured,(float) myDrive.mot2.reg.action, (myDrive.mot2.reg.error>200) || (myDrive.mot2.reg.error<200));
+#endif
 
-				compute_params(ident.th,&regpar);
-
-				if ((regpar.Kr > 0.01) && (regpar.Kr < 2))
-				{
-					RegulatorSetPID(&myDrive.mot1.reg,regpar.Kr,regpar.Ti,regpar.Td);
-					RegulatorSetPID(&myDrive.mot2.reg,regpar.Kr,regpar.Ti,regpar.Td);
-					MotorControlSetState(MOTOR_STOP);
-					myDrive.selftuning_state = SELFTUNING_DONE;
-				}
-				else
-				{
-					RegulatorSetPID(&myDrive.mot1.reg, 0.5, 0.19, 1.3);
-					RegulatorSetPID(&myDrive.mot2.reg, 0.5, 0.19, 1.3);
-					MotorControlSetState(MOTOR_STOP);
-					myDrive.selftuning_state = SELFTUNING_ERROR;
-				}
-				break;
-			default:
-			case SELFTUNING_STOP:
-				break;
-			case SELFTUNING_DONE:
-				break;
-			case SELFTUNING_ERROR:
-				break;
-
-			}
-			rlse_update( &ident, (float) myDrive.mot2.reg.measured,(float) myDrive.mot2.reg.action, myDrive.selftuning_state == SELFTUNING_RUNING);
-			//rlse_update( &ident, (float) myDrive.mot1.reg.measured,(float) myDrive.mot1.reg.action, ((myDrive.mot1.reg.der>500)||(myDrive.mot1.reg.der<-500)));
-
-
-
+			// synchronization
 			if( xSemaphoreGive( xWaitData ) != pdTRUE )
 			{
 				// there is no data consument
@@ -513,7 +462,7 @@ void QEI0_IRQHandler( void)
 	vTraceStoreISRBegin(2);
 	portEXIT_CRITICAL();
 #endif
-	//! upravit - pøímo registr s maskou
+	// according to interrupt type
 	switch( QEIIntStatus(QEI0_BASE, true) )
 	{
 	case QEI_INTERROR:
@@ -525,50 +474,56 @@ void QEI0_IRQHandler( void)
 	case QEI_INTTIMER:
 		portENTER_CRITICAL();
 		{
-			//! pøímo registr
+			// now we store measured speed
 			speed.value = QEIVelocityGet(QEI0_BASE);
-			//speed.value *= QEIDirectionGet(QEI0_BASE); // alternativa
 			if (QEIDirectionGet(QEI0_BASE) < 0) // backward?
 			{
-				speed.value *= -1;//! šlo by jednodušeji?
+				//we update value according direction
+				speed.value *= -1;
 			}
 
 			speed.id = MOTOR_1;
 		}
 		portEXIT_CRITICAL();
 
-		QEIIntClear(QEI0_BASE, QEI_INTDIR|QEI_INTTIMER|QEI_INTERROR);//!registr
+		// now we should clear interrupt flag
+		QEIIntClear(QEI0_BASE, QEI_INTDIR|QEI_INTTIMER|QEI_INTERROR);
 
+		// place for action value connection to pwm module
 		if( xQueueReceiveFromISR( xMotorPWMQ1, &pwm, &cTaskWoken ) == pdTRUE )
 		{
-			if (pwm == 0) // no signal
+			if (pwm == 0)
 			{
 
 				PWMOutputState(PWM_BASE, PWM_OUT_0_BIT|PWM_OUT_1_BIT, false);
 			}
-			else if (pwm<0) // reverz
+			else
 			{
-				pwm *= -1;
-				portENTER_CRITICAL();
+				if (pwm<0) // reverz
 				{
-					PWMPulseWidthSet(PWM_BASE, PWM_OUT_1, pwm);
-					PWMOutputState(PWM_BASE, PWM_OUT_1_BIT, true);
-					PWMOutputState(PWM_BASE, PWM_OUT_0_BIT, false);
+					pwm *= -1;
+					portENTER_CRITICAL();
+					{
+						PWMPulseWidthSet(PWM_BASE, PWM_OUT_1, pwm);
+						PWMOutputState(PWM_BASE, PWM_OUT_1_BIT, true);
+						PWMOutputState(PWM_BASE, PWM_OUT_0_BIT, false);
+					}
+					portEXIT_CRITICAL();
 				}
-				portEXIT_CRITICAL();
-			}
-			else // forward
-			{
-				portENTER_CRITICAL();
+				else // forward
 				{
-					PWMPulseWidthSet(PWM_BASE, PWM_OUT_0, pwm);
-					PWMOutputState(PWM_BASE, PWM_OUT_0_BIT, true);
-					PWMOutputState(PWM_BASE, PWM_OUT_1_BIT, false);
+					portENTER_CRITICAL();
+					{
+						PWMPulseWidthSet(PWM_BASE, PWM_OUT_0, pwm);
+						PWMOutputState(PWM_BASE, PWM_OUT_0_BIT, true);
+						PWMOutputState(PWM_BASE, PWM_OUT_1_BIT, false);
+					}
+					portEXIT_CRITICAL();
 				}
-				portEXIT_CRITICAL();
 			}
 		}
 
+		// measured value transfer
 		xQueueSendFromISR( xSpeedActQ, &speed, &xHigherPriorityTaskWoken );
 		if( xHigherPriorityTaskWoken != pdFALSE )
 		{
@@ -612,10 +567,11 @@ void QEI1_IRQHandler( void)
 	case QEI_INTTIMER:
 		portENTER_CRITICAL();
 		{
+			// now we store measured speed
 			speed.value = QEIVelocityGet(QEI1_BASE);
-			//speed.value *= QEIDirectionGet(QEI0_BASE); // alternativa
 			if (QEIDirectionGet(QEI1_BASE) < 0) // backward?
 			{
+				//we update value according direction
 				speed.value *= -1;
 			}
 
@@ -623,38 +579,42 @@ void QEI1_IRQHandler( void)
 		}
 		portEXIT_CRITICAL();
 
+		// now we should clear interrupt flag
 		QEIIntClear(QEI1_BASE, QEI_INTDIR|QEI_INTTIMER|QEI_INTERROR);
 
+		// place for action value connection to pwm module
 		if( xQueueReceiveFromISR( xMotorPWMQ2, &pwm, &cTaskWoken ) == pdTRUE )
 		{
-			// omezení proti pøetékání
 			if (pwm == 0) // no signal
 			{
 				PWMOutputState(PWM_BASE, PWM_OUT_2_BIT|PWM_OUT_3_BIT, false);
 			}
-			else if (pwm<0) // reverz
+			else
 			{
-				pwm *= -1;
-				portENTER_CRITICAL();
+				if (pwm<0) // reverz
 				{
-					PWMPulseWidthSet(PWM_BASE, PWM_OUT_3, pwm);
-					PWMOutputState(PWM_BASE, PWM_OUT_3_BIT, true);
-					PWMOutputState(PWM_BASE, PWM_OUT_2_BIT, false);
+					pwm *= -1;
+					portENTER_CRITICAL();
+					{
+						PWMPulseWidthSet(PWM_BASE, PWM_OUT_3, pwm);
+						PWMOutputState(PWM_BASE, PWM_OUT_3_BIT, true);
+						PWMOutputState(PWM_BASE, PWM_OUT_2_BIT, false);
+					}
+					portEXIT_CRITICAL();
 				}
-				portEXIT_CRITICAL();
-			}
-			else // forward
-			{
-				portENTER_CRITICAL();
+				else // forward
 				{
-					PWMPulseWidthSet(PWM_BASE, PWM_OUT_2, pwm);
-					PWMOutputState(PWM_BASE, PWM_OUT_2_BIT, true);
-					PWMOutputState(PWM_BASE, PWM_OUT_3_BIT, false);
+					portENTER_CRITICAL();
+					{
+						PWMPulseWidthSet(PWM_BASE, PWM_OUT_2, pwm);
+						PWMOutputState(PWM_BASE, PWM_OUT_2_BIT, true);
+						PWMOutputState(PWM_BASE, PWM_OUT_3_BIT, false);
+					}
+					portEXIT_CRITICAL();
 				}
-				portEXIT_CRITICAL();
 			}
 		}
-
+		// measured value transfer
 		xQueueSendFromISR( xSpeedActQ, &speed, &xHigherPriorityTaskWoken );
 		if( xHigherPriorityTaskWoken != pdFALSE )
 		{

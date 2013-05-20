@@ -1,23 +1,20 @@
 /*! \mainpage Robotic vehicle API Documentation main Page
  *
  *
- * This is the introduction of project.
- *
- *
- *
  *
  * Project structure
  * -----------------
  *
+ *On this picture there are relations between program modules that comprise the general firmware of robotic vehicle. Blocks are clickable.
  *\dot
   digraph example {
-      node [shape=record, fontname=Helvetica, fontsize=12];
+      node [shape=record, fontname=Sans, fontsize=11];
       fr [ label="FreeRTOS"];
       dl [ label="DriverLib"];
       cd [ label="CommonDefs" URL="\ref CommonDefs"];
       sm [ label="SimpleMatrix" URL="\ref SimpleMatrix"];
       sl [ label="StatusLED" URL="\ref StatusLED"];
-      rlse [ label="RLSE" URL="\ref RLSE"];
+      rlse [ label="RLS" URL="\ref RLS"];
       reg [ label="Regulator" URL="\ref Regulator"];
       mot [ label="MotorControl" URL="\ref MotorControl"];
       acc [ label="Accelerometer" URL="\ref Accelerometer"];
@@ -33,8 +30,7 @@
       can -> sl [ arrowhead="open", style="dashed" ];
   }
   \enddot
- *
- * Module structure image
+
  *
  * Modules that is contained in firmware is in Module Tab.
  *
@@ -102,14 +98,32 @@ int main(void)
 }
 	\endcode
  *
+ * How to change microcontroller clock frequency
+ * ---------------------------------------------
+ * There are two steps:
+ * 1. You must change Divider value of SysCtlClockSet() in vSystemInit() in Main.c
+ * 2. You must change clock frequency in FreeRTOSConfig.h
+ *
  * How to add new FreeRTOS task
  * ----------------------------
+ *\code{c}
+ void UserTask_task( void * param)
+  {
+  	while(1)
+  	{
+  	//empty task
+  	vTaskDelay(10);
+  	}
+  }
+ * .....
+ * xTaskCreate(UserTask_task, (signed portCHAR *) "USER", 512, NULL, tskIDLE_PRIORITY , NULL)
+ * \endcode
  *
  * How to change MCU pin mapping
  * -----------------------------
  * Each used microcontroller pin is defined in CommonDefs.h.
  *
- * How to use trace view?
+ * How to use Trace view?
  * -----------------------
  * 1. FreeRTOS heap and task stacks should be configured with spare size.
  * 2. configUSE_TRACE_FACILITY in FreeRTOSConfig.h must be set to 1
@@ -118,39 +132,20 @@ int main(void)
  *
  * How configure heap size?
  * ------------------------
- * During debugging you can display value of xFreeBytesRemaining global variable, that express free
+ * During debugging you can display value of xFreeBytesRemaining global variable, that express free heap memory.
  *
+ * How to check stack usage?
+ * ------------------------
+ * You should use FreeRTOS function vTaskList() that return task list with the actual task stack usage.
  *
+ * License
+ * -------
+ * License is specified in Licence.txt file.
  *
- * Lukáš Otava 2013
+ * Brno, Lukáš Otava 2013
 
  */
-/*
- *  * TODO: upravit kód regulátoru
- *
- * TODO: upravit RLS
- *
- * TODO: vytvoøit kód pro jízdu po zadané trajektorii
- *
- * TODO: k èemu bude identifikace? když možná špatnì identifikuje statické zesílení?
- *
- * TODO:
- *
- * */
-
-/* \file
- * \author Lukas Otava
- * \date 2013
- * \defgroup  */
 
 
-/* \brief
- *
- * Example usage:
- *  \code{c}
 
-	\endcode
- * \param
- * \ingroup
- * \return
- * \warning */
+

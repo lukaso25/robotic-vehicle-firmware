@@ -25,7 +25,7 @@ short errors[ERROR_COUNT];
  */
 void StatusLED_task( void * pvParameters );
 
-signed portBASE_TYPE StatusLEDInit( unsigned portBASE_TYPE priority)
+signed long StatusLEDInit( unsigned long priority)
 {
 	// temporary variable
 	short i;
@@ -90,7 +90,6 @@ void SetError( enum Err err)
 
 void ClearError( enum Err err)
 {
-	//! NEED TO BE ADDED
 	// for valid error number
 	if (err< ERROR_COUNT)
 		// clear all error occures

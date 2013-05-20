@@ -13,56 +13,63 @@
 #include "CommonDefs.h"
 #include "Regulator.h"
 #include "FreeRTOS.h"
-#include "RLSE.h"
 
-//! this macro defines PWM frequency in Hz (H-bridge max frequency limiting parameter)
+
+//! This macro defines PWM frequency in Hz (H-bridge max frequency limiting parameter)
 //! \ingroup MotorControl
 #define MOTOR_PWM_FREQ		(10000)
 
-//! this macro define regulator sampling frequency in Hz
+//! This macro define regulator sampling frequency in Hz
 //! \ingroup MotorControl
 #define SPEED_REG_FREQ		(50)   //pøednastavení QEI èasovaèe pro periodu 20ms (50Hz)
 
-//! motor and encoder coeficient
+//! Motor and encoder coeficient
 //! \ingroup MotorControl
-#define MOTOR_PULSES_PER_VOLT	(700.0)//(767.2)
+#define MOTOR_PULSES_PER_VOLT	(767.2)
 
-//! maximal mean value voltage for motor
+//! Maximal mean value voltage for motor
 //! \ingroup MotorControl
 #define MOTOR_MAX_MEAN_VOLTAGE (6.0)
 
-//! minimal battery voltage - when measured is lower -> motor control will be switched into shutdown state (4.7 V is minimal possible value, 5.5 V for the 2-cell LiIon battery pack)
+//! Minimal battery voltage - when measured is lower -> motor control will be switched into shutdown state (4.7 V is minimal possible value, 5.5 V for the 2-cell LiIon battery pack)
 //! \ingroup MotorControl
 #define BATERRY_MINIMAL_VOLTAGE (4.7)
 
-//! this macro define PWM output for harmonic balance test
-//! \ingroup MotorControl
-#define HARMONIC_BALANCE_RELAY_LIMIT  (1000)
-
-//! distance between wheels in mm for odometry and speed conversions
+//! Distance between wheels in mm for odometry and speed conversions
 //! \ingroup MotorControl
 #define WHEEL_DISTANCE (65.0)
 
-//! wheel pulses peer revolution - according to the QEI setting and encoder parameters
+//! Wheel pulses peer revolution - according to the QEI setting and encoder parameters
 //! \ingroup MotorControl
 #define WHEEL_PULSES_PER_REVOLUTION	(4*512)
 
-//! wheel circumference in mm
+//! Wheel circumference in mm
 //! \ingroup MotorControl
 #define WHEEL_CIRCUMFERENCE	(147.65)
 
-//! motor-wheel gear-box ration n  ( n = n_input/n_output )
+//! Motor-wheel gear-box ration n  ( n = n_input/n_output )
 //! \ingroup MotorControl
 #define WHEEL_GEAR_RATIO (100.0/12.0)
 
-//! wheel distance peer EQI pulse
+//! Wheel distance peer EQI pulse
 //! \ingroup MotorControl
 #define WHEEL_DISTANCE_PEER_QEI_PULSE  (WHEEL_CIRCUMFERENCE/WHEEL_GEAR_RATIO/WHEEL_PULSES_PER_REVOLUTION)
 
-//! this macro enable simple position tracking through odometry
+//! This macro enable simple position tracking through odometry
 //! \ingroup MotorControl
-#define MOTOR_ENABLE_ODOMETRY (1)
+#define MOTORCONTROL_ENABLE_ODOMETRY (1)
 
+//! This macro enable online identification
+//! \ingroup MotorControl
+#define MOTORCONTROL_IDENT_ENABLE	(1)
+
+//! Default proportional gain
+//! \ingroup MotorControl
+#define MOTORCONTROL_P	(0.5)
+
+//! Default integration constant
+//! \ingroup MotorControl
+#define MOTORCONTROL_TI (0.2)
 
 /*! \brief Available states of MotorControl module
  * \ingroup MotorControl */
@@ -80,18 +87,6 @@ enum MotorState
 	MOTOR_FAILURE = 4,
 };
 
-/* \brief Self tuning state variable enumeration
- * \ingroup MotorControl
- * */
-enum SelFTuningState
-{
-	SELFTUNING_ERROR = -1,
-	SELFTUNING_STOP = 0,
-	SELFTUNUNG_START,
-	SELFTUNING_RUNING,
-	SELFTUNING_END,
-	SELFTUNING_DONE
-};
 
 /*! \brief Motor identification
  * ingroup MotorControl */
@@ -145,9 +140,6 @@ struct DriveBlock
 
 	//! actual Motor control module state
 	enum MotorState state;
-
-	//! selftuning state
-	enum SelFTuningState selftuning_state;
 };
 
 
@@ -155,8 +147,11 @@ struct DriveBlock
  * \ingroup MotorControl */
 struct DriveBlock myDrive;
 
+#if MOTORCONTROL_IDENT_ENABLE == 1
+#include "RLS.h"
 /*! \brief This structure holds the identification parameters \ingroup MotorControl */
-rlseType ident;
+rlsType ident;
+#endif
 
 /*! \brief This function initialize MotorControl module and task
  *
@@ -172,7 +167,7 @@ rlseType ident;
  * \ingroup MotorControl
  * \return pdPass value is returned if module task was created correctly
  * \warning This function require FreeRTOS environment */
-signed portBASE_TYPE MotorControlInit( unsigned portBASE_TYPE priority);
+signed long MotorControlInit( unsigned long priority);
 
 /*! \brief This function changes between Motor control module modes
  *
@@ -197,8 +192,8 @@ void MotorControlSetState( enum MotorState st);
 	}
 	\endcode
  * \ingroup MotorControl
- * \return current MotorControl mode
- * \warning */
+ * \return Current MotorControl mode
+ * */
 enum MotorState MotorControlGetState( void);
 
 /*! \brief This function waits for new MotorControl period with new measured data
@@ -212,16 +207,16 @@ enum MotorState MotorControlGetState( void);
 		// we have new valid data
 	}
 	\endcode
- * \param timeout waiting timeout in tick
+ * \param timeout Waiting timeout in tick
  * \return pdTrue is returned if correct
  * \ingroup MotorControl
  * */
-signed portBASE_TYPE MotorControlWaitData(portTickType timeout);
+signed long MotorControlWaitData( portTickType timeout);
 
 /*! \brief This function can set a speed for both motors
  *
  * The input speed is signed short integer. Dimension of this speed is incremental sensor ticks peer sampling period.
- * eg. \f$ [v_1 =  \frac{ticks}{period}\f$
+ * eg. \f$ v_1 =  \frac{ticks}{period}\f$
  *
  * Example usage:
  *  \code{c}
@@ -232,9 +227,9 @@ signed portBASE_TYPE MotorControlWaitData(portTickType timeout);
  * \param v2 desired speed for motor 2
  * \ingroup MotorControl
  * */
-void MotorControlSetWheelSpeed(signed short v1, signed short v2);
+void MotorControlSetWheelSpeed( signed short v1, signed short v2);
 
-/*! \brief This function can set a speed for differential drive as forward and angular speed.
+/*! \brief This function set a speed for differential drive as forward and angular speed.
  *
  * Example usage:
  *  \code{c}
@@ -245,13 +240,12 @@ void MotorControlSetWheelSpeed(signed short v1, signed short v2);
  * \param w rotation speed
  * \ingroup MotorControl
  * */
-void MotorControlSetSpeed(float v, float w);
+void MotorControlSetSpeed( float v, float w);
 
-
+/*! \brief This function set robot position to {0,0,0}
+ * \ingroup MotorControl
+ * */
 void MotorControlOdometryReset( void);
-
-void MotorControlSetSelfTuning( enum SelFTuningState  state);
-enum SelFTuningState MotorControlGetSelfTuning( void);
 
 // FreeRTOS task
 void MotorControl_task( void * param);

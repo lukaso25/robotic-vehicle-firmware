@@ -7,9 +7,6 @@ short RegulatorAction(struct RegulatorParams * rp, short measurement, unsigned c
 	float flOut;
 	short siOut;
 
-	//
-	rp->Dexp = expf(-rp->N/rp->Td);
-
 	// measurement store
 	rp->measured = measurement;
 
@@ -20,23 +17,21 @@ short RegulatorAction(struct RegulatorParams * rp, short measurement, unsigned c
 
 	// regulator output (action value)
 	flOut = (rp->Kr *((rp->Beta*(float)rp->desired) - (float)rp->measured))
-			+ rp->sum
-			+ (rp->N*rp->Kr*( -rp->measured + ( rp->der * rp->Dexp ) - rp->der ) );
+			+ rp->sum;
 
-	// integration update
-	rp->sum += ( rp->Kr * rp->Ti * rp->error ) + ( rp->Kip * rp->saturationDiff / rp->outputScale );
+#if REGULATOR_PI_VERSION_ONLY != 1
+	// derivation filter constant
+	rp->Dexp = expf(-rp->N/rp->Td);
 
-	if (rp->sum >  10000)
-	{
-		rp->sum =  10000;
-	}
-	if (rp->sum <  -10000)
-	{
-		rp->sum =  -10000;
-	}
+	//derivation value
+	flOut += (rp->N*rp->Kr*( -rp->measured + ( rp->der * rp->Dexp ) - rp->der ) );
 
 	// derivation update Xd2 = ( Xd2 * exp(-1*Ts*N)/Td))-in;
 	rp->der = (rp->der * rp->Dexp) - rp->measured;
+#endif
+
+	// integration update
+	rp->sum += ( rp->Kr * rp->Ti * rp->error ) + ( rp->Kip * rp->saturationDiff / rp->outputScale );
 
 
 	// manual/automatic mode switch
@@ -76,6 +71,15 @@ short RegulatorAction(struct RegulatorParams * rp, short measurement, unsigned c
 	// over-integration protection feedback
 	rp->saturationDiff = (float)siOut - (flOut * rp->outputScale);
 
+	if (rp->saturationDiff >  rp->limit)
+	{
+		rp->saturationDiff =  rp->limit;
+	}
+	if (rp->saturationDiff <  -rp->limit)
+	{
+		rp->saturationDiff =  -rp->limit;
+	}
+
 	return siOut;
 }
 
@@ -110,4 +114,10 @@ void RegulatorSetScaleLimit(struct RegulatorParams * rp, float outputScale, unsi
 	// we only transfer values into structure
 	rp->limit = limit;
 	rp->outputScale  = outputScale;
+}
+
+void RegulatorSetDesired(struct  RegulatorParams * rp, short desiredValue)
+{
+	// we only transfer value into structure
+	rp->desired = desiredValue;
 }

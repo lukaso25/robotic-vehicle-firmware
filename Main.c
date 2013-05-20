@@ -22,13 +22,14 @@
 #include "Motorcontrol.h"
 #include "SlipSerial.h"
 #include "CANtest.h"
-#include "RLSE.h"
+#include "RLS.h"
 
 
+//! System clock initialization
 void vSystemInit( void)
 {
 	//! CLOCK setup to 20 MHz - base frequency 200MHz
-	SysCtlClockSet(SYSCTL_SYSDIV_10 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_6MHZ);
+	SysCtlClockSet(SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_6MHZ);
 
 	USER_SWITCH_INIT();
 
@@ -37,45 +38,33 @@ void vSystemInit( void)
 //! temporary motor mode
 char motorMode = MOTOR_RUNNING;
 
-char namiste = 0;
-struct Position desPos;
-
+//
 void SlipSerialProcessPacket(char packet_buffer[], int length)
 {
 	//packet arrived
 	switch (packet_buffer[0])
 	{
-	case ID_MOTOR_ACT:
-		if (length<5)
-		{
-			//corrupted data
-			SetError(ERROR_COMMAND);
-		}
-		else
-		{
-			ClearError(ERROR_COMM_SLIP);
-			MotorControlSetWheelSpeed(packet_buffer[1]|(packet_buffer[2]<<8), packet_buffer[3]|(packet_buffer[4]<<8));
-		}
-		break;
 	case ID_SET_SPEED:
 		if (length<8)
 		{
 			//corrupted data
+			// command error indication
 			SetError(ERROR_COMMAND);
 		}
 		else
 		{
 			float speeds[2];
+			// command error clearence
 			ClearError(ERROR_COMM_SLIP);
 			memcpy(&speeds,&packet_buffer[1],8);
 			MotorControlSetSpeed(speeds[0],speeds[1]);
-			//MotorControlSetState(motorMode);
 		}
 		break;
 	case ID_MOTOR_MODE:
 		if (length<2)
 		{
 			//corrupted data
+			// command error indication
 			SetError(ERROR_COMMAND);
 		}
 		else
@@ -87,6 +76,7 @@ void SlipSerialProcessPacket(char packet_buffer[], int length)
 			}
 			else
 			{
+				// command error indication
 				SetError(ERROR_COMMAND);
 			}
 		}
@@ -95,44 +85,31 @@ void SlipSerialProcessPacket(char packet_buffer[], int length)
 		if (length<6)
 		{
 			//corrupted data
+			// command error indication
 			SetError(ERROR_COMMAND);
 		}
 		else
 		{
-			memcpy(&myDrive.mot1.reg.Kr,&packet_buffer[1],24);
-			memcpy(&myDrive.mot2.reg.Kr,&packet_buffer[1],24);
-		}
-		break;
-	case ID_POSITION:
-		if (length<6)
-		{
-			//corrupted data
-			SetError(ERROR_COMMAND);
-		}
-		else
-		{
-			memcpy(&desPos,&packet_buffer[1],12);
+			// regulator structure update
+			memcpy(&myDrive.mot1.reg.Kr,&packet_buffer[1],sizeof(float[6]));
+			memcpy(&myDrive.mot2.reg.Kr,&packet_buffer[1],sizeof(float[6]));
 		}
 		break;
 	case ID_GENERIC_COMMAND:
 		switch (packet_buffer[1])
 		{
-		case COMMAND_GO:
-			//namiste = 0;
-			break;
 		case COMMAND_GET_REG:
-			//regulator params update
-			SlipSend(ID_REG_PARAMS, (char *) &myDrive.mot1.reg.Kr, 3*sizeof(float));
-			break;
-		case COMMAND_ADAPTIVE_REG:
-			MotorControlSetSelfTuning(SELFTUNUNG_START);
+			//regulator parameters update
+			SlipSend(ID_REG_PARAMS, (char *) &myDrive.mot1.reg.Kr, sizeof(float[3]));
 			break;
 		case COMMAND_RESET_ODOMETRY:
+			// command activity
 			MotorControlOdometryReset();
 			break;
 		}
 		break;
 	default:
+		// command error indication
 		SetError(ERROR_COMMAND);
 		break;
 	}
@@ -140,64 +117,28 @@ void SlipSerialProcessPacket(char packet_buffer[], int length)
 
 void SlipSerialReceiveTimeout( void)
 {
-	//  timeout
+	// timeout - stop motors to shutdown - prevent battery discharging
 	MotorControlSetState(MOTOR_SHUTDOWN);
+	// timeout error indication
 	SetError(ERROR_COMM_SLIP);
 }
 
-/*float AngleError(struct Position* actual, struct Position* desired)
-{
-	float error = 0.0;
 
-	float zu = atan2f((desired->y-actual->y),(desired->x-actual->x));
-	float th = atan2f(sinf(actual->theta),cosf(actual->theta));
-
-	error = zu - th;
-	SlipSend(ID_TEST_PARAM, (char *) &error, sizeof(float));
-
-	return error;
-}
-float Distance(struct Position* actual, struct Position* desired)
-{
-	return sqrtf( (desired->y-actual->y)*(desired->y-actual->y) + (desired->x-actual->x)*(desired->x-actual->x));
-}*/
-
-void ControlTask_task( void * param)
+void UserTask_task( void * param)
 {
 #if configUSE_TRACE_FACILITY==1
+	// task list actualization prescaler
 	short taskListPre = 100;
 #endif
-
-	//short posreg = 5;
-
-	//new point
-	desPos.x = 100;
-	desPos.y = 100;
-
+	// forewer
 	while(1)
 	{
+		// now, we wait for new regulator sample period and new data
 		if( MotorControlWaitData(50) == pdTRUE )
 		{
-			short regvalues[6];
+			short regvalues[8];
 			unsigned short values[3];
 			char timestamp = 1;
-
-			/*posreg--;
-			if (posreg == 0)
-			{
-				posreg = 5;
-				if (!namiste)
-				{
-					MotorControlSetSpeed(100.0,0.5*AngleError(&desPos,&myDrive.position));
-					if (Distance(&desPos,&myDrive.position) < 10.0)
-						namiste = 1;
-				}
-				else
-				{
-					MotorControlSetSpeed(0.0,0.0);
-				}
-
-			}*/
 
 			//acc values
 			SlipSend(ID_ACC_STRUCT,(char *) &accData, 2*sizeof(short int));
@@ -206,15 +147,18 @@ void ControlTask_task( void * param)
 				//OK
 			}
 
-			//regulator values
+			//regulator values copy
 			regvalues[0] = myDrive.mot1.reg.measured;
-			regvalues[2] = myDrive.mot1.reg.action;
-			regvalues[4] = myDrive.mot1.reg.error;
 			regvalues[1] = myDrive.mot2.reg.measured;
+			regvalues[2] = myDrive.mot1.reg.action;
 			regvalues[3] = myDrive.mot2.reg.action;
+			regvalues[4] = myDrive.mot1.reg.error;
 			regvalues[5] = myDrive.mot2.reg.error;
+			regvalues[6] = myDrive.mot1.reg.desired;
+			regvalues[7] = myDrive.mot2.reg.desired;
 
-			SlipSend(ID_REG,(char *) &regvalues, sizeof(short[6]));
+			// regulators data
+			SlipSend(ID_REG,(char *) &regvalues, sizeof(short[8]));
 
 			//data from ADC
 			values[0] = myDrive.mot1.current_act;
@@ -228,13 +172,12 @@ void ControlTask_task( void * param)
 			SlipSend(ID_MOTOR_MODE, (char *) &myDrive.state, sizeof(enum MotorState) );
 
 			//odometry
-			SlipSend(ID_POSITION, (char *) &myDrive.position, 3*sizeof(float));
+			SlipSend(ID_POSITION, (char *) &myDrive.position, sizeof(float[3]));
 
+#if MOTORCONTROL_IDENT_ENABLE == 1
 			// identified parameters
-			SlipSend(ID_IDENT_PARAMS, (char *) &ident.th->mat[0], 4*sizeof(float));
-
-			SlipSend(ID_TEST_PARAM, (char *) &myDrive.mot1.reg.sum, sizeof(float));
-
+			SlipSend(ID_IDENT_PARAMS, (char *) &ident.th->mat[0], sizeof(float[4]));
+#endif
 			//timestamp
 			SlipSend(ID_TIME_STAMP,(char *) &timestamp, sizeof(char));
 
@@ -259,26 +202,25 @@ void ControlTask_task( void * param)
 	}
 }
 
-signed portBASE_TYPE ControlTaskInit( unsigned portBASE_TYPE priority )
+// user task initialization
+signed portBASE_TYPE UserTaskInit( unsigned portBASE_TYPE priority )
 {
 	// we only create control task
-	return xTaskCreate(ControlTask_task, (signed portCHAR *) "CTRL", 512, NULL, priority , NULL);
+	return xTaskCreate(UserTask_task, (signed portCHAR *) "USER", 512, NULL, priority , NULL);
 }
-
-
 
 int main(void)
 {
-	//! inicializace základních periferií systému
+	//! HW initialization
 	vSystemInit();
 
-	//! HeartBeat úloha indikaèní diody
+	//! HeartBeat taks
 	if (StatusLEDInit(tskIDLE_PRIORITY+1) != pdPASS)
 	{
 		//error
 	}
 
-	//! SlipSerial komunikace po seriové lince
+	//! SlipSerial serial communication task
 	if (SlipSerialInit(tskIDLE_PRIORITY +2, 57600, 600) != pdPASS)
 	{
 		//error
@@ -290,25 +232,27 @@ int main(void)
 		// error occurred during MotorControl module initialization
 	}
 
-	//! úloha akcelerometru
+	//! Accelerometer task
 	if (AccelerometerInit(tskIDLE_PRIORITY +3) != pdPASS)
 	{
 		//error
 	}
 
+	// task creation condition
 	if (USER_SWITCH_READ2())
 	{
-		//! úloha øízení  - tady budou kraviny kolem, logování atd
-		if ( ControlTaskInit(tskIDLE_PRIORITY +2) != pdPASS)
+		//! User control task initialization
+		if ( UserTaskInit(tskIDLE_PRIORITY +2) != pdPASS)
 		{
 			//error
 		}
 	}
 
+	// CANtest taks condition
 	if (USER_SWITCH_READ3())
 	{
 		//! CANTest task
-		if (xTaskCreate(CANtest_task, (signed portCHAR *) "CAN", 256, NULL, tskIDLE_PRIORITY +1, NULL) != pdPASS)
+		if (CANtestInit(tskIDLE_PRIORITY +1) != pdPASS)
 		{
 			//error
 		}

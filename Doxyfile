@@ -32,7 +32,7 @@ PROJECT_NAME           = "Robotic vehicle firmware API"
 # This could be handy for archiving the generated documentation or 
 # if some version control system is used.
 
-PROJECT_NUMBER         = "Diploma thesis 2013"
+PROJECT_NUMBER         = 
 
 # Using the PROJECT_BRIEF tag one can provide an optional one line description 
 # for a project that appears at the top of each page and should give viewer 
@@ -676,7 +676,6 @@ WARN_LOGFILE           =
 # with spaces.
 
 INPUT                  = MotorControl.h \
-                         MotorControl.c \
                          Regulator.h \
                          Regulator.c \
                          SimpleMatrix.h \
@@ -689,8 +688,10 @@ INPUT                  = MotorControl.h \
                          CANtest.h \
                          CANtest.c \
                          CommonDefs.h \
-                         RLSE.c \
-                         RLSE.h
+                         MotorControl.c \
+                         RLS.c \
+                         RLS.h \
+                         Licence.txt
 
 # This tag can be used to specify the character encoding of the source files 
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is 
@@ -1189,7 +1190,7 @@ ECLIPSE_DOC_ID         = org.doxygen.Project
 # navigation tree you can set this option to NO if you already set 
 # GENERATE_TREEVIEW to YES.
 
-DISABLE_INDEX          = YES
+DISABLE_INDEX          = NO
 
 # The GENERATE_TREEVIEW tag is used to specify whether a tree-like index 
 # structure should be generated to display hierarchical information. 

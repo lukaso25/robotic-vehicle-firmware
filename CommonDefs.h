@@ -25,19 +25,23 @@
 //! this macro convert value from ADC to number in volts (V)
 #define ADC2VOLTAGE(x) ((x)*(9.617/1023.0))
 
-//! this macro convert value from ADC to number in mili ampers (mA)
+//! this macro convert value from ADC to number in mili-ampers (mA)
 #define ADC2CURRENT(x) ((x)*(375.0/200.0))
 
 //!this macro convert value in volts (V) into value from ADC
 #define VOLTAGE2ADC(x) ((x)*(1023.0/9.617))
 
-//!this macro convert value in mili ampers (mA) into value from ADC
+//!this macro convert value in mili-ampers (mA) into value from ADC
 #define CURRENT2ADC(x) ((x)*(200.0/375.0))
 
+//! Structure holding generic position on 2D space
 struct Position
 {
+	//! x-axes position
 	float x;
+	//! y-axes position
 	float y;
+	//! heading angle
 	float theta;
 };
 
@@ -46,8 +50,6 @@ struct Position
 #define LED_RED			(GPIO_PIN_2)
 //! Status LED HW connection definitions LED port
 #define LED_RED_PORT	(GPIO_PORTF_BASE)
-
-//! HW definitions I2C
 
 
 //! I2C SCL PIN
@@ -60,7 +62,6 @@ struct Position
 
 
 //! HW definitions MOTORCONTROL
-
 #define BRIDGE0_EN				(GPIO_PIN_7)
 #define BRIDGE0_EN_PORT			(GPIO_PORTD_BASE)
 #define BRIDGE0_IN1				(GPIO_PIN_0)
@@ -92,7 +93,6 @@ struct Position
 
 
 //! USER SWITCH MACROS
-
 #define USER_SWITCH_PERIPHERALS (SYSCTL_PERIPH_GPIOE|SYSCTL_PERIPH_GPIOB)
 #define USER_SWITCH1_PORT	(GPIO_PORTE_BASE)
 #define USER_SWITCH2_PORT	(GPIO_PORTE_BASE)
@@ -101,6 +101,8 @@ struct Position
 #define USER_SWITCH2		(GPIO_PIN_0)
 #define USER_SWITCH3		(GPIO_PIN_6)
 
+//! \ingroup CommonDefs
+//! \brief This macro initiate user switch GPIO
 #define USER_SWITCH_INIT() {SysCtlPeripheralEnable(USER_SWITCH_PERIPHERALS); \
 							GPIOPinTypeGPIOInput(USER_SWITCH1_PORT,USER_SWITCH1);\
 							GPIOPadConfigSet(USER_SWITCH1_PORT,USER_SWITCH1,GPIO_STRENGTH_2MA,GPIO_PIN_TYPE_STD_WPU);\
@@ -109,8 +111,17 @@ struct Position
 							GPIOPinTypeGPIOInput(USER_SWITCH1_PORT,USER_SWITCH3);\
 							GPIOPadConfigSet(USER_SWITCH3_PORT,USER_SWITCH3,GPIO_STRENGTH_2MA,GPIO_PIN_TYPE_STD_WPU);}
 
+//! \ingroup CommonDefs
+//! \brief This macro read the 1st user switch
 #define USER_SWITCH_READ1() ( GPIOPinRead(USER_SWITCH1_PORT,USER_SWITCH1)==0 )
+
+//! \ingroup CommonDefs
+//! \brief This macro read the 2nd user switch
+
 #define USER_SWITCH_READ2() ( GPIOPinRead(USER_SWITCH2_PORT,USER_SWITCH2)==0 )
+
+//! \ingroup CommonDefs
+//! \brief This macro read the 3rd user switch
 #define USER_SWITCH_READ3() ( GPIOPinRead(USER_SWITCH3_PORT,USER_SWITCH3)==0 )
 
 

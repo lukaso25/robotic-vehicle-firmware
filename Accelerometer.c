@@ -16,19 +16,99 @@
 
 #define ACC_I2C_ADR		(0x20>>1)
 
+signed short AccelerometerRead( void);
+short AccelerometerBandgapTest( void);
+short AccelerometerPowerUp( void);
 
 xSemaphoreHandle xRequestAccData;
 
 //místo pro naètená zrychlení
 short int accData[2] = {0,0};
 
-// naètení a uložení hodnot zrychlení z akcelerometru
+
+// inicializaèní funkce
+signed long  AccelerometerInit(  unsigned long priority)
+{
+	short temp;
+
+	// Enables I2C0 and GPIO B
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C0);
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
+
+	//Propojení  I2C signálù
+	GPIOPinTypeI2C(I2C_SCL_PORT, I2C_SCL);
+	GPIOPinTypeI2C(I2C_SDA_PORT, I2C_SDA);
+
+	// nastavení režimu a rychlosti
+	I2CMasterInitExpClk(I2C_MASTER_BASE, SysCtlClockGet(), true);
+
+	// zapnutí ACC
+	temp = AccelerometerPowerUp();
+
+	// NEED to be edited
+	unsigned short i = 1;
+	while(i != 0)
+	{
+		i++;
+	}
+
+	// bandgap ACC test
+	temp = AccelerometerBandgapTest();
+
+	if (temp < 9)
+		return temp;
+
+
+	// FreeRTOS objects
+	vSemaphoreCreateBinary( xRequestAccData );
+	if( xRequestAccData == NULL )
+	{
+		return pdFAIL;
+	}
+
+	return xTaskCreate(Accelerometer_task, (signed portCHAR *) "ACC", 256, NULL, priority , NULL);;
+}
+
+// FreeRTOS function
+void Accelerometer_task( void * pvParameters )
+{
+	while(1)
+	{
+		// we wait for actulization request
+		if ( xSemaphoreTake( xRequestAccData, 100 ) == pdPASS )
+		{
+
+		}
+		// acceleration actualization
+		if (AccelerometerRead()<0)
+		{
+			//error
+		}
+
+	}
+	//vTaskDelete( NULL );
+}
+
+signed long AccelerometerRequestData( void)
+{
+	return xSemaphoreGive( xRequestAccData );
+}
+
+float AccelerometerGetX( void)
+{
+	return  (float)(accData[0]-2048)/400.0*9.81;
+}
+
+float AccelerometerGetY( void)
+{
+	return  (float)(accData[1]-2048)/400.0*9.81;
+}
+
+// reading a new data
 signed short AccelerometerRead( void)
 {
 	unsigned long temp;
 	signed short err;
-
-	//! JE TØEBA OPRAVIT ERROR HANDLING!!!
 
 	// Specify slave address
 	I2CMasterSlaveAddrSet(I2C_MASTER_BASE, ACC_I2C_ADR, false);
@@ -90,17 +170,16 @@ signed short AccelerometerRead( void)
 		err = -1;
 		//error happened
 	}
-
 	return err;
-
-
 }
 
-//nulování akcelerometry, tepelná kompenzace
+// Bandgap test
 short AccelerometerBandgapTest( void)
 {
+	// variables
 	unsigned long temp;
 	short err = 0;
+
 	// Specify slave address
 	I2CMasterSlaveAddrSet(I2C_MASTER_BASE, ACC_I2C_ADR, false);
 
@@ -126,17 +205,17 @@ short AccelerometerBandgapTest( void)
 		//error happened
 	}
 
-	// NEED to be edited
-	//! nìkolik ètení pro získání prùmìru
+	// delay
 	unsigned short i = 1;
 	while(i != 0)
 	{
 		i++;
 	}
-	err = AccelerometerRead();
-	err = AccelerometerRead();
-	err = AccelerometerRead();
 
+	// ACC dummy read
+	err = AccelerometerRead();
+	err = AccelerometerRead();
+	err = AccelerometerRead();
 
 	// Specify slave address
 	I2CMasterSlaveAddrSet(I2C_MASTER_BASE, ACC_I2C_ADR, false);
@@ -166,11 +245,13 @@ short AccelerometerBandgapTest( void)
 	return err;
 }
 
-// softwarové povolení napájení akcelerometru
+// acc. soft power supply enable
 short AccelerometerPowerUp( void)
 {
+	// variables
 	unsigned long temp;
 	short err = 0;
+
 	// Specify slave address
 	I2CMasterSlaveAddrSet(I2C_MASTER_BASE, ACC_I2C_ADR, false);
 
@@ -198,6 +279,7 @@ short AccelerometerPowerUp( void)
 
 	I2CMasterDataPut(I2C_MASTER_BASE, 0x00); // value 0
 	I2CMasterControl(I2C_MASTER_BASE, I2C_MASTER_CMD_BURST_SEND_FINISH);
+
 	// Delay until transmission completes
 	while(I2CMasterBusy(I2C_MASTER_BASE)){};
 	if((temp = I2CMasterErr(I2C_MASTER_BASE)) != 0)
@@ -217,74 +299,4 @@ short AccelerometerPowerUp( void)
 		}
 	}
 	return err;
-}
-
-
-// inicializaèní funkce
-signed portBASE_TYPE  AccelerometerInit(  unsigned portBASE_TYPE priority)
-{
-	short temp;
-
-	// Enables I2C0 and GPIO B
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C0);
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
-
-	//Propojení  I2C signálù
-	GPIOPinTypeI2C(I2C_SCL_PORT, I2C_SCL);
-	GPIOPinTypeI2C(I2C_SDA_PORT, I2C_SDA);
-
-	// nastavení režimu a rychlosti
-	I2CMasterInitExpClk(I2C_MASTER_BASE, SysCtlClockGet(), true);
-
-	// zapnutí ACC
-	temp = AccelerometerPowerUp();
-
-	// NEED to be edited
-	unsigned short i = 1;
-	while(i != 0)
-	{
-		i++;
-	}
-
-	// nulování ACC
-	temp = AccelerometerBandgapTest();
-
-	// opravit logování chyb !!!
-	if (temp < 9)
-		return temp;
-
-	vSemaphoreCreateBinary( xRequestAccData );
-	if( xRequestAccData == NULL )
-	{
-		return pdFAIL;
-	}
-
-	return xTaskCreate(Accelerometer_task, (signed portCHAR *) "ACC", 256, NULL, priority , NULL);;
-}
-
-// funkce reprezentující FreeRTOS úlohu
-void Accelerometer_task( void * pvParameters )
-{
-	while(1)
-	{
-		//naètení
-		if ( xSemaphoreTake( xRequestAccData, 100 ) == pdPASS )
-		{
-
-		}
-		if (AccelerometerRead()<0)
-		{
-			//error
-		}
-
-		//odeslání a èekání
-	}
-	//vTaskDelete( NULL );
-}
-
-signed portBASE_TYPE AccelerometerRequestData( void)
-{
-	// We would expect this call to fail because we cannot give
-	// a semaphore without first "taking" it!
-	return xSemaphoreGive( xRequestAccData );
 }

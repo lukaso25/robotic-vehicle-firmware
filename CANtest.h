@@ -1,3 +1,8 @@
+
+#include "CommonDefs.h"
+#include "StatusLED.h"
+
+
 /*! \file CANtest.h
  * \author Lukas Otava
  * \date 2013
@@ -7,7 +12,7 @@
  *
  * */
 
-/*! \brief This function changes between Motor control module modes
+/*! \brief This CANtest module initialization function
  *
  * Example usage:
  *  \code{c}
@@ -19,4 +24,8 @@
 	\endcode
  * \ingroup CANtest
  *  */
+signed long CANtestInit( unsigned long priority);
+
+
+/* CANtest FreeRTOS task */
 void CANtest_task( void * param);
