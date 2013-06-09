@@ -1,8 +1,9 @@
-
 robotic-vehicle-firmware
 ========================
 
 for detailed information see Main.h Doxygen comments and documentation in api_reference.chm
+
+video http://youtu.be/uBBjyBb-PdU
 
 
 Based on 
